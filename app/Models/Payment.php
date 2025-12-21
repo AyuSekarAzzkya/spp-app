@@ -10,8 +10,6 @@ class Payment extends Model
         'student_id',
         'verified_by',
         'payment_date',
-        'paid_amount',
-        'proof_image',
         'status',
         'note',
         'verified_at'
@@ -30,5 +28,10 @@ class Payment extends Model
     public function details()
     {
         return $this->hasMany(PaymentDetail::class);
+    }
+
+     public function proofs()
+    {
+        return $this->hasMany(PaymentProof::class);
     }
 }

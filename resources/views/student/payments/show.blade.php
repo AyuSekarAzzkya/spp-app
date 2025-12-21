@@ -11,20 +11,45 @@
 
             <div class="row">
 
-                {{-- Bukti --}}
+                {{-- BUKTI TRANSFER --}}
                 <div class="col-md-6">
                     <div class="card shadow-sm border-0 mb-3">
                         <div class="card-header bg-white fw-semibold">
                             Bukti Transfer
                         </div>
-                        <div class="card-body text-center">
-                            <img src="{{ asset('storage/' . $payment->proof_image) }}" class="img-fluid rounded"
-                                style="max-height:400px">
+                        <div class="card-body">
+
+                            @forelse ($payment->proofs as $proof)
+                                <div class="mb-4 text-center">
+                                    <img src="{{ asset('storage/' . $proof->image_path) }}"
+                                        class="img-fluid rounded shadow-sm mb-2" style="max-height: 300px">
+
+                                    <div class="fw-bold">
+                                        Rp {{ number_format($proof->amount, 0, ',', '.') }}
+                                    </div>
+
+                                    @if ($proof->note)
+                                        <small class="text-muted d-block">
+                                            Catatan: {{ $proof->note }}
+                                        </small>
+                                    @endif
+
+                                    <small class="text-muted">
+                                        Upload: {{ $proof->created_at->format('d M Y H:i') }}
+                                    </small>
+                                </div>
+                                <hr>
+                            @empty
+                                <p class="text-muted text-center">
+                                    Belum ada bukti pembayaran.
+                                </p>
+                            @endforelse
+
                         </div>
                     </div>
                 </div>
 
-                {{-- Detail --}}
+                {{-- DETAIL PEMBAYARAN --}}
                 <div class="col-md-6">
                     <div class="card shadow-sm border-0 mb-3">
                         <div class="card-header bg-white fw-semibold">
@@ -32,8 +57,16 @@
                         </div>
                         <div class="card-body">
 
-                            <p><b>Tanggal:</b> {{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}</p>
-                            <p><b>Jumlah:</b> Rp {{ number_format($payment->paid_amount) }}</p>
+                            <p>
+                                <b>Tanggal:</b>
+                                {{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}
+                            </p>
+
+                            <p>
+                                <b>Total Transfer:</b>
+                                Rp {{ number_format($payment->proofs->sum('amount'), 0, ',', '.') }}
+                            </p>
+
                             <p>
                                 <b>Status:</b>
                                 @if ($payment->status === 'pending')
@@ -60,18 +93,47 @@
                                     <li>
                                         {{ $detail->bill->month }}
                                         {{ $detail->bill->year }}
-                                        — Rp {{ number_format($detail->amount) }}
+                                        — Rp {{ number_format($detail->amount, 0, ',', '.') }}
                                     </li>
                                 @endforeach
                             </ul>
 
                         </div>
                     </div>
-                </div>
 
+                    {{-- FORM UPLOAD ULANG --}}
+                    @if (in_array($payment->status, ['pending', 'rejected']))
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-semibold">
+                                Upload Bukti Tambahan
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('student.payments.upload-proof', $payment->id) }}" method="POST"
+                                    enctype="multipart/form-data">
+                                    @csrf
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Nominal Transfer</label>
+                                        <input type="number" name="amount" class="form-control" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Bukti Transfer</label>
+                                        <input type="file" name="proof_image" class="form-control" required>
+                                    </div>
+
+                                    <button class="btn btn-primary w-100">
+                                        Upload Bukti Tambahan
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+
+                </div>
             </div>
 
-            <a href="{{ route('student.payments.index') }}" class="btn btn-secondary mt-2">
+            <a href="{{ route('student.payments.index') }}" class="btn btn-secondary mt-3">
                 Kembali
             </a>
 

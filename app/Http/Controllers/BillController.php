@@ -12,21 +12,18 @@ class BillController extends Controller
 {
     public function students()
     {
-        // Ambil tahun ajaran aktif
         $activeYear = AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
             return back()->with('error', 'Tahun ajaran aktif belum diset.');
         }
 
-        // Ambil SPP Rate sesuai tahun ajaran aktif
         $sppRates = SppRate::where('academic_year_id', $activeYear->id)->get();
 
         if ($sppRates->isEmpty()) {
             return back()->with('error', 'SPP Rate untuk tahun ajaran aktif belum diset.');
         }
 
-        // Ambil semua siswa
         $students = Student::with('class')->orderBy('name')->get();
 
         return view('admin.bills.students', compact('students', 'activeYear', 'sppRates'));
@@ -52,17 +49,14 @@ class BillController extends Controller
             return back()->with('error', 'Tidak ada siswa terdaftar.');
         }
 
-        // 4. Tahun awal (misal "2024/2025")
         $yearParts = explode('/', $activeYear->year);
         $billingYear = intval($yearParts[0]);
 
         $createdCount = 0;
 
-        // 5. Loop semua siswa
         foreach ($students as $student) {
             for ($month = 1; $month <= 12; $month++) {
 
-                // Cek duplikat
                 $exists = Bill::where('student_id', $student->id)
                     ->where('month', $month)
                     ->where('year', $billingYear)
@@ -92,8 +86,8 @@ class BillController extends Controller
         $activeYear = AcademicYear::where('is_active', true)->first();
 
         $sppRates = SppRate::where('academic_year_id', $activeYear->id)->get();
-        $sppRate  = SppRate::where('academic_year_id', $activeYear->id)->first(); // penting
-
+        $sppRate  = SppRate::where('academic_year_id', $activeYear->id)->first(); 
+        
         $bills = Bill::where('student_id', $studentId)
             ->orderBy('year')
             ->orderBy('month')
@@ -108,13 +102,9 @@ class BillController extends Controller
         ));
     }
 
-    public function showDetail($id) // $id di sini adalah ID dari Tabel Bills
+    public function showDetail($id) 
     {
-        // 1. Cari dulu tagihannya
         $bill = Bill::findOrFail($id);
-
-        // 2. Ambil pembayaran yang terkait dengan tagihan ini melalui tabel detail
-        // Kita asumsikan tagihan ini sudah punya pembayaran
         $payment = Payment::with(['student', 'details.bill.academicYear'])
             ->whereHas('details', function ($q) use ($id) {
                 $q->where('bill_id', $id);

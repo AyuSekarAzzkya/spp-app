@@ -18,7 +18,6 @@
             $role = auth()->check() ? auth()->user()->role : null;
         @endphp
 
-        {{-- ADMIN & PETUGAS MENU --}}
         @if (in_array($role, ['admin', 'petugas']))
             <li class="nav-item">
                 <a class="nav-link" href="#">
@@ -77,9 +76,33 @@
                     <i class="mdi mdi-credit-card-check menu-icon text-success"></i>
                 </a>
             </li>
+
+
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="collapse" href="#menu-laporan" aria-expanded="false"
+                    aria-controls="menu-laporan">
+                    <span class="menu-title">Laporan</span>
+                    <i class="mdi mdi-file-chart menu-icon text-warning"></i>
+                    <i class="menu-arrow"></i>
+                </a>
+                <div class="collapse" id="menu-laporan">
+                    <ul class="nav flex-column sub-menu">
+                        <li class="nav-item"><a class="nav-link" href="#">Laporan Harian</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Laporan Bulanan</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Laporan Tunggakan</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Laporan Per Kelas</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item mt-2">
+                <a class="nav-link" href="{{ route('settings.index') }}">
+                    <span class="menu-title">Pengaturan</span>
+                    <i class="mdi mdi-cog menu-icon text-secondary"></i>
+                </a>
+            </li>
         @endif
 
-        {{-- SISWA MENU --}}
         @if ($role === 'siswa')
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('student.dashboard') }}">
@@ -96,39 +119,17 @@
             </li>
         @endif
 
+        @if (in_array($role, ['admin', 'petugas', 'siswa']))
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('payments.history') }}">
+                    <span class="menu-title">Riwayat Pembayaran</span>
+                    <i class="mdi mdi-history menu-icon text-info"></i>
+                </a>
+            </li>
+        @endif
+
         <li class="nav-item">
             <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 20px;"></div>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <span class="menu-title">Riwayat Pembayaran</span>
-                <i class="mdi mdi-history menu-icon text-info"></i>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="collapse" href="#menu-laporan" aria-expanded="false"
-                aria-controls="menu-laporan">
-                <span class="menu-title">Laporan</span>
-                <i class="mdi mdi-file-chart menu-icon text-warning"></i>
-                <i class="menu-arrow"></i>
-            </a>
-            <div class="collapse" id="menu-laporan">
-                <ul class="nav flex-column sub-menu">
-                    <li class="nav-item"><a class="nav-link" href="#">Laporan Harian</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Laporan Bulanan</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Laporan Tunggakan</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Laporan Per Kelas</a></li>
-                </ul>
-            </div>
-        </li>
-
-        <li class="nav-item mt-2">
-            <a class="nav-link" href="{{ route('settings.index') }}">
-                <span class="menu-title">Pengaturan</span>
-                <i class="mdi mdi-cog menu-icon text-secondary"></i>
-            </a>
         </li>
     </ul>
 </nav>

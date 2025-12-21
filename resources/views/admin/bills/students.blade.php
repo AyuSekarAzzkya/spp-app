@@ -2,8 +2,6 @@
 
 @section('content')
     <div class="container mt-4">
-
-        {{-- HEADER --}}
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
@@ -22,7 +20,6 @@
                     </div>
                 </div>
 
-                {{-- GENERATE ALL --}}
                 <form action="{{ route('bills.generateAll') }}" method="POST">
                     @csrf
                     <button class="btn btn-primary px-4">
@@ -33,7 +30,6 @@
         </div>
 
 
-        {{-- TABLE CARD --}}
         <div class="card shadow-sm">
             <div class="card-header bg-white fw-bold">
                 Daftar Siswa
@@ -68,13 +64,10 @@
                                 </tr>
                             @endforeach
                         </tbody>
-
                     </table>
                 </div>
-
             </div>
         </div>
-
     </div>
 @endsection
 

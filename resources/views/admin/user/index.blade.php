@@ -169,7 +169,6 @@
         </div>
     </div>
 
-    {{-- MODAL EDIT USER --}}
     <div class="modal fade" id="modalEditUser" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-xl-down">
             <div class="modal-content bg-white">

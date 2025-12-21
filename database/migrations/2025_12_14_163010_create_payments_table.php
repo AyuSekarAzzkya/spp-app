@@ -14,12 +14,10 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
-            $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete(); // admin / petugas
-            $table->date('payment_date'); // tanggal transfer
-            $table->integer('paid_amount'); // jumlah yang ditransfer (klaim siswa)
-            $table->string('proof_image'); // path bukti transfer (jpg/png)
+            $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->date('payment_date');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('note')->nullable(); // catatan admin (kurang / salah bulan)
+            $table->text('note')->nullable(); 
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
         });

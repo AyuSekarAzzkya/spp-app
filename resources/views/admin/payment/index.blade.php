@@ -32,7 +32,7 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td class="fw-semibold">{{ $item->student->name }}</td>
                                         <td>{{ $item->payment_date }}</td>
-                                        <td>Rp {{ number_format($item->paid_amount) }}</td>
+                                        <td> Rp {{ number_format($item->proofs->sum('amount'), 0, ',', '.') }}</td>
                                         <td>
                                             @if ($item->status == 'pending')
                                                 <span class="badge bg-warning">Pending</span>

@@ -95,7 +95,6 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
 
-        // Validasi input
         $request->validate([
             'nis' => 'required|unique:students,nis,' . $student->id,
             'nisn' => 'nullable|unique:students,nisn,' . $student->id,

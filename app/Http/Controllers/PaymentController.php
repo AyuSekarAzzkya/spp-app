@@ -5,19 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\Bill;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    /* =====================================================
-     * ADMIN
-     * ===================================================== */
-
     public function adminIndex()
     {
-        $payments = Payment::with('student')
-            ->orderByDesc('id')
+        $payments = Payment::with('student', 'proofs')
+            ->latest()
             ->get();
 
         return view('admin.payment.index', compact('payments'));
@@ -27,19 +23,26 @@ class PaymentController extends Controller
     {
         $payment = Payment::with([
             'student',
-            'details.bill.sppRate'
+            'details.bill.sppRate',
+            'proofs',
         ])->findOrFail($id);
 
-        // $bill = Bill::with(['student.class', 'student.academicYear'])->findOrFail($id);
-
-        return view('admin.payment.show', compact('payment',));
+        return view('admin.payment.show', compact('payment'));
     }
 
     public function approve($id)
     {
         DB::transaction(function () use ($id) {
 
-            $payment = Payment::with('details.bill')->findOrFail($id);
+            $payment = Payment::with(['details.bill', 'proofs'])
+                ->findOrFail($id);
+
+            $totalTagihan = $payment->details->sum('amount');
+            $totalBayar   = $payment->proofs->sum('amount');
+
+            if ($totalBayar < $totalTagihan) {
+                abort(403, 'Nominal pembayaran belum mencukupi.');
+            }
 
             foreach ($payment->details as $detail) {
                 $detail->bill->update([
@@ -55,13 +58,13 @@ class PaymentController extends Controller
             ]);
         });
 
-        return redirect()->back()->with('success', 'Pembayaran berhasil disetujui.');
+        return back()->with('success', 'Pembayaran berhasil disetujui.');
     }
 
     public function reject(Request $request, $id)
     {
         $request->validate([
-            'note' => 'required'
+            'note' => 'required|string',
         ]);
 
         Payment::findOrFail($id)->update([
@@ -71,17 +74,13 @@ class PaymentController extends Controller
             'verified_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Pembayaran ditolak.');
+        return back()->with('success', 'Pembayaran ditolak.');
     }
-
-    /* =====================================================
-     * STUDENT
-     * ===================================================== */
 
     public function studentIndex()
     {
         $payments = Payment::where('student_id', Auth::user()->student->id)
-            ->orderByDesc('id')
+            ->latest()
             ->get();
 
         return view('student.payments.index', compact('payments'));
@@ -89,7 +88,7 @@ class PaymentController extends Controller
 
     public function studentShow($id)
     {
-        $payment = Payment::with('details.bill.sppRate')
+        $payment = Payment::with(['details.bill.sppRate', 'proofs'])
             ->where('student_id', Auth::user()->student->id)
             ->findOrFail($id);
 
@@ -98,13 +97,13 @@ class PaymentController extends Controller
 
     public function create()
     {
-        $user = Auth::user();
+        $student = Auth::user()->student;
 
-        if (!$user->student) {
+        if (!$student) {
             abort(404, 'Data siswa tidak ditemukan.');
         }
 
-        $bills = $user->student->bills()
+        $bills = $student->bills()
             ->with('sppRate')
             ->where('status', 'unpaid')
             ->get();
@@ -112,53 +111,83 @@ class PaymentController extends Controller
         return view('student.payments.create', compact('bills'));
     }
 
-  public function store(Request $request)
-{
-    $request->validate([
-        'bill_ids'    => 'required|array|min:1',
-        'bill_ids.*'  => 'exists:bills,id',
-        'paid_amount' => 'required|numeric|min:1',
-        'proof_image' => 'required|image|max:2048',
-    ]);
-
-    DB::transaction(function () use ($request) {
-
-        $path = $request->file('proof_image')
-            ->store('payment-proofs', 'public');
-
-        $payment = Payment::create([
-            'student_id'   => Auth::user()->student->id,
-            'payment_date' => now(),
-            'paid_amount'  => $request->paid_amount,
-            'proof_image'  => $path,
-            'status'       => 'pending',
+    public function store(Request $request)
+    {
+        $request->validate([
+            'bill_ids'    => 'required|array|min:1',
+            'bill_ids.*'  => 'exists:bills,id',
+            'amount'      => 'required|numeric|min:1',
+            'proof_image' => 'required|image|max:2048',
+            'note'        => 'nullable|string',
         ]);
 
-        $total = 0;
+        DB::transaction(function () use ($request) {
 
-        foreach ($request->bill_ids as $billId) {
+            $student = Auth::user()->student;
 
-            $bill = Bill::where('id', $billId)
-                ->where('student_id', Auth::user()->student->id)
-                ->where('status', 'unpaid')
-                ->firstOrFail();
+            $path = $request->file('proof_image')
+                ->store('payment-proofs', 'public');
 
-            $payment->details()->create([
-                'bill_id' => $bill->id,
-                'amount'  => $bill->sppRate->amount,
+            $payment = Payment::create([
+                'student_id'   => $student->id,
+                'payment_date' => now(),
+                'status'       => 'pending',
             ]);
 
-            $total += $bill->sppRate->amount;
-        }
+            foreach ($request->bill_ids as $billId) {
 
-        if ($request->paid_amount != $total) {
-            abort(403, 'Jumlah pembayaran tidak valid');
-        }
-    });
+                $bill = Bill::where('id', $billId)
+                    ->where('student_id', $student->id)
+                    ->where('status', 'unpaid')
+                    ->firstOrFail();
 
-    return redirect()
-        ->route('student.payments.index')
-        ->with('success', 'Bukti pembayaran berhasil dikirim.');
-}
+                $payment->details()->create([
+                    'bill_id' => $bill->id,
+                    'amount'  => $bill->sppRate->amount,
+                ]);
+            }
 
+            $payment->proofs()->create([
+                'image_path' => $path,
+                'amount'     => $request->amount,
+                'note'       => $request->note,
+            ]);
+        });
+
+        return redirect()
+            ->route('student.payments.index')
+            ->with('success', 'Bukti pembayaran berhasil dikirim.');
+    }
+
+    public function uploadAdditionalProof(Request $request, $paymentId)
+    {
+        $payment = Payment::where('id', $paymentId)
+            ->where('student_id', Auth::user()->student->id)
+            ->whereIn('status', ['pending', 'rejected'])
+            ->firstOrFail();
+
+        $request->validate([
+            'amount'      => 'required|numeric|min:1',
+            'proof_image' => 'required|image|max:2048',
+            'note'        => 'nullable|string',
+        ]);
+
+        DB::transaction(function () use ($request, $payment) {
+
+            $path = $request->file('proof_image')
+                ->store('payment-proofs', 'public');
+
+            $payment->proofs()->create([
+                'image_path' => $path,
+                'amount'     => $request->amount,
+                'note'       => $request->note,
+            ]);
+
+            $payment->update([
+                'status' => 'pending',
+            ]);
+        });
+
+        return back()->with('success', 'Bukti pembayaran tambahan berhasil dikirim.');
+    }
 }

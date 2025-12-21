@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
+        Schema::create('payment_proofs', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique();
-            $table->text('value')->nullable();
+            $table->foreignId('payment_id')->constrained('payments')->cascadeOnDelete();
+            $table->string('image_path');
+            $table->integer('amount'); 
+            $table->text('note')->nullable(); 
             $table->timestamps();
+            $table->softDeletes(); 
         });
     }
 
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::dropIfExists('payment_proofs');
     }
 };

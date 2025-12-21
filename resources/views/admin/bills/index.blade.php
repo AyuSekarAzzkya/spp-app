@@ -3,12 +3,10 @@
 @section('content')
     <div class="container mt-4">
 
-        {{-- TITLE --}}
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold mb-0">Tagihan SPP Siswa</h3>
         </div>
 
-        {{-- CARD: INFORMASI SISWA --}}
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-start">
 
@@ -42,7 +40,6 @@
         </div>
     </div>
 
-    {{-- CARD: DAFTAR TAGIHAN --}}
     <div class="card shadow-sm">
         <div class="card-header bg-white fw-bold">
             Riwayat Tagihan SPP

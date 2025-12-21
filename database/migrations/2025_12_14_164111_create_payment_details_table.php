@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('payment_id')->constrained('payments')->cascadeOnDelete();
             $table->foreignId('bill_id')->constrained('bills')->cascadeOnDelete();
-            $table->integer('amount'); // nominal per bulan
+            $table->integer('amount');
             $table->timestamps();
         });
     }

@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('spp_rates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('academic_year_id')->constrained('academic_years');
-            // $table->enum('semester', ['ganjil', 'genap']);
-            $table->integer('amount'); // nominal per bulan
+            $table->integer('amount'); 
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

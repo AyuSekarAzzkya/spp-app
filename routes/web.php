@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SPPRateController;
 use App\Http\Controllers\SettingController;
@@ -18,6 +19,11 @@ Route::get('/', function () {
 
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/student/payments/history', [HistoryController::class, 'index'])->name('payments.history');
+    Route::get('/student/payments/history/{id}', [HistoryController::class, 'show'])->name('payments.history.show');
+});
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dasboard/admin', [DashboardController::class, 'admin'])->name('admin.dashboard');
@@ -77,4 +83,6 @@ Route::middleware(['auth', 'siswa'])->group(function () {
     Route::get('student/payments/create', [PaymentController::class, 'create'])->name('student.payments.create');
     Route::post('student/payments/store', [PaymentController::class, 'store'])->name('student.payments.store');
     Route::get('student/payments/{id}', [PaymentController::class, 'studentShow'])->name('student.payments.show');
+    // upload ulang bukti
+    Route::post('/student/payments/{payment}/upload-proof', [PaymentController::class, 'uploadAdditionalProof'])->name('student.payments.upload-proof');
 });

@@ -204,7 +204,7 @@
                                                     2MB (JPG/PNG)</small>
                                             </div>
 
-                                            <input type="hidden" name="paid_amount" id="paidAmount">
+                                            <input type="hidden" name="amount" id="amount">
                                             <button type="submit"
                                                 class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm border-0">
                                                 Bayar Sekarang
@@ -227,7 +227,7 @@
             const checkboxes = document.querySelectorAll('.bill-check');
             const totalDisplay = document.getElementById('totalAmount');
             const countDisplay = document.getElementById('itemCount');
-            const paidAmountInput = document.getElementById('paidAmount');
+            const amountInput = document.getElementById('amount');
             const listContainer = document.getElementById('selectedItemsList');
 
             checkboxes.forEach(checkbox => {
@@ -246,11 +246,11 @@
                             count++;
 
                             htmlList += `
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="small text-muted">${month}</span>
-                                <span class="small fw-bold text-dark">${price}</span>
-                            </div>
-                        `;
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted">${month}</span>
+                            <span class="small fw-bold text-dark">${price}</span>
+                        </div>
+                    `;
                         }
                     });
 
@@ -258,12 +258,13 @@
                         listContainer.innerHTML = htmlList;
                     } else {
                         listContainer.innerHTML =
-                            '<div class="text-center py-3 border rounded-3 border-dashed bg-light"><small class="text-muted">Pilih bulan di sebelah kiri</small></div>';
+                            '<div class="text-center py-3 border rounded-3 border-dashed bg-light">' +
+                            '<small class="text-muted">Pilih bulan di sebelah kiri</small></div>';
                     }
 
                     totalDisplay.innerText = total.toLocaleString('id-ID');
                     countDisplay.innerText = count + ' Bulan';
-                    paidAmountInput.value = total;
+                    amountInput.value = total;
                 });
             });
         });
