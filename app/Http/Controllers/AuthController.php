@@ -8,17 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /* =============================
-     * FORM LOG IN
-     * ============================= */
+
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /* =============================
-     * PROSES LOGIN
-     * ============================= */
     public function login(Request $request)
     {
         $request->validate([
@@ -30,7 +25,6 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            // redirect sesuai role
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             }
@@ -49,9 +43,7 @@ class AuthController extends Controller
             'email' => 'Email atau password salah'
         ]);
     }
-    /* =============================
-     * LOGOUT
-     * ============================= */
+
     public function logout(Request $request)
     {
         Auth::logout();
@@ -59,6 +51,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect('/');
     }
 }

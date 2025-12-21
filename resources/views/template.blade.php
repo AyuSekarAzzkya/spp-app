@@ -27,8 +27,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css">
     {{-- sweetalert --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    {{-- <link rel="stylesheet" href="css/style.css"> --}}
-    @stack('style')
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @stack('css')
 </head>
 
 <body>

@@ -1,20 +1,18 @@
 <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
     <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-        <a class="navbar-brand brand-logo" href="index.html">
+        <a class="navbar-brand brand-logo" href="{{ url('/dashboard') }}">
             <img src="{{ asset('template/dist') }}/assets/images/logo.svg" alt="logo" />
         </a>
-        <a class="navbar-brand brand-logo-mini" href="index.html">
+        <a class="navbar-brand brand-logo-mini" href="{{ url('/dashboard') }}">
             <img src="{{ asset('template/dist') }}/assets/images/logo-mini.svg" alt="logo" />
         </a>
     </div>
 
     <div class="navbar-menu-wrapper d-flex align-items-stretch">
-        <!-- HAMBURGER -->
         <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
             <span class="mdi mdi-menu"></span>
         </button>
 
-        <!-- SEARCH BAR -->
         <div class="search-field d-none d-md-block">
             <form class="d-flex align-items-center h-100" action="#">
                 <div class="input-group">
@@ -28,47 +26,40 @@
 
         <ul class="navbar-nav navbar-nav-right">
 
-            <!-- HAMBURGER RESPONSIVE (MOBILE) -->
-            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
-                data-toggle="offcanvas">
-                <span class="mdi mdi-menu"></span>
-            </button>
-
-
-            <!-- PROFILE DROPDOWN -->
             <li class="nav-item nav-profile dropdown">
                 <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-bs-toggle="dropdown"
                     aria-expanded="false">
 
-                    <!-- ICON PROFILE -->
-                    <i class="mdi mdi-account-circle mdi-36px"></i>
+                    <i class="mdi mdi-account-circle mdi-36px text-primary"></i>
 
-                    <!-- NAMA USER -->
                     <div class="nav-profile-text ms-2">
-                        <p class="mb-1 text-black">Ayu Sekar Azzkya</p>
+                        <p class="mb-1 text-black">{{ Auth::user()->name }}</p>
                     </div>
 
                 </a>
 
-                <!-- DROPDOWN -->
                 <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
-                    <a class="dropdown-item" href="#"
+                    <a class="dropdown-item" href="{{ route('logout') }}"
                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="mdi mdi-logout me-2 text-primary"></i> Signout
                     </a>
 
-                    <form id="logout-form" action="#" method="POST" class="d-none">
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf
                     </form>
                 </div>
             </li>
 
-            <!-- FULLSCREEN -->
             <li class="nav-item d-none d-lg-block full-screen-link">
                 <a class="nav-link">
                     <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
                 </a>
             </li>
+
+            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+                data-toggle="offcanvas">
+                <span class="mdi mdi-menu"></span>
+            </button>
 
         </ul>
     </div>

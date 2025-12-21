@@ -4,142 +4,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Aplikasi SPP</title>
-    <!-- Bootstrap CSS -->
+    <title>Login | E-SPP System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #6c5ce7, #00b894);
-            min-height: 100vh;
-        }
-
-        .card {
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-
-        .card::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #6c5ce7;
-        }
-
-        .btn-primary {
-            background: #6c5ce7;
-            border: none;
-            transition: 0.3s;
-        }
-
-        .btn-primary:hover {
-            background: #4834d4;
-        }
-
-        .alert {
-            border-radius: 12px;
-        }
-
-        .login-title {
-            color: #2d3436;
-        }
-
-        .login-subtitle {
-            color: #636e72;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="row justify-content-center align-items-center" style="min-height: 100vh">
-
-            <div class="col-md-5 col-lg-4">
-                <div class="card shadow-lg p-4">
-
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold login-title">Selamat Datang</h3>
-                        <p class="login-subtitle">Masuk untuk mengelola pembayaran SPP</p>
-                    </div>
-
-                    {{-- ALERT SUCCESS --}}
-                    @if (session('success'))
-                        <div class="alert alert-success text-center">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    {{-- ERROR LOGIN --}}
-                    @if ($errors->any())
-                        <div class="alert alert-danger text-center">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
-
-                    <form action="{{ route('login.process') }}" method="POST">
-                        @csrf
-
-                        {{-- EMAIL --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="email@example.com"
-                                value="{{ old('email') }}" required>
-                        </div>
-
-                        {{-- PASSWORD --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="********" required>
-                        </div>
-
-                        {{-- BUTTON --}}
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
-                            Masuk
-                        </button>
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            Belum punya akun? <a href="#" class="text-primary">Daftar</a>
-                        </small>
-                    </div>
-
+    <div class="main-wrapper">
+        <section class="login-visual">
+            <div class="brand-logo">
+                <div class="bg-white rounded-2 d-flex align-items-center justify-content-center"
+                    style="width: 35px; height: 35px;">
+                    <i class="fas fa-graduation-cap text-primary"></i>
                 </div>
-
-                <div class="text-center mt-4 text-white-50 small">
-                    © {{ date('Y') }} Aplikasi SPP
-                </div>
+                <span>E-SPP SYSTEM</span>
             </div>
 
-        </div>
+            <div class="visual-content">
+                <span class="badge bg-info mb-3 px-3 py-2 rounded-pill">SISTEM KEUANGAN</span>
+                <h1>Kelola Pembayaran <br> Jadi Lebih Mudah.</h1>
+                <p class="lead opacity-75">Monitoring SPP siswa secara real-time, akurat, dan transparan dalam satu
+                    platform.</p>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-info"></i>
+                            <span class="small">Laporan Instan</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-info"></i>
+                            <span class="small">Keamanan Data</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="login-auth">
+            <div class="auth-card">
+                <div class="mb-4">
+                    <h2 class="fw-bold text-dark">Login</h2>
+                    <p class="text-muted small">Gunakan akun Anda.</p>
+                </div>
+
+                <form action="{{ route('login.process') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="far fa-user"></i></span>
+                            <input type="email" name="email" class="form-control" placeholder="nama@sekolah.sch.id"
+                                required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label">Password</label>
+                            <a href="#" class="text-decoration-none small fw-bold text-info"
+                                style="font-size: 0.7rem;">Lupa?</a>
+                        </div>
+                        <div class="input-group" id="show_hide_password">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <span class="input-group-text bg-light" style="cursor: pointer;">
+                                <i class="fa fa-eye-slash text-muted" aria-hidden="true" style="font-size: 0.8rem;"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember">
+                        <label class="form-check-label text-muted" for="remember" style="font-size: 0.8rem;">Ingat
+                            saya</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-login w-100 shadow-sm">
+                        LOGIN KE DASHBOARD <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+
+                <div class="footer-note">
+                    <p>© {{ date('Y') }} E-SPP Management System. <br> Powered by School IT</p>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#show_hide_password span").on('click', function(event) {
+                event.preventDefault();
+                let input = $('#show_hide_password input');
+                let icon = $('#show_hide_password i');
+                if (input.attr("type") == "text") {
+                    input.attr('type', 'password');
+                    icon.addClass("fa-eye-slash").removeClass("fa-eye");
+                } else {
+                    input.attr('type', 'text');
+                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
