@@ -77,15 +77,6 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran ditolak.');
     }
 
-    public function studentIndex()
-    {
-        $payments = Payment::where('student_id', Auth::user()->student->id)
-            ->latest()
-            ->get();
-
-        return view('student.payments.index', compact('payments'));
-    }
-
     public function studentShow($id)
     {
         $payment = Payment::with(['details.bill.sppRate', 'proofs'])

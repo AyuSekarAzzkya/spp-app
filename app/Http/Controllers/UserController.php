@@ -50,7 +50,7 @@ class UserController extends Controller
 
         if ($request->password) {
             $request->validate(['password' => 'min:4']);
-            $user->password = $request->password;
+            $user->password = Hash::make($request->password);
         }
 
         $user->save();

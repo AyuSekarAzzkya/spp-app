@@ -30,8 +30,8 @@ class Payment extends Model
         return $this->hasMany(PaymentDetail::class);
     }
 
-     public function proofs()
+    public function proofs()
     {
-        return $this->hasMany(PaymentProof::class);
+        return $this->hasMany(PaymentProof::class, 'payment_id');
     }
 }

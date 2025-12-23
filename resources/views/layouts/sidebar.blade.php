@@ -87,19 +87,10 @@
                 </a>
                 <div class="collapse" id="menu-laporan">
                     <ul class="nav flex-column sub-menu">
-                        <li class="nav-item"><a class="nav-link" href="#">Laporan Harian</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Laporan Bulanan</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Laporan Tunggakan</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Laporan Per Kelas</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('reports.index') }}">Laporan</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('reports.arrears') }}">Laporan Tunggakan</a></li>
                     </ul>
                 </div>
-            </li>
-
-            <li class="nav-item mt-2">
-                <a class="nav-link" href="{{ route('settings.index') }}">
-                    <span class="menu-title">Pengaturan</span>
-                    <i class="mdi mdi-cog menu-icon text-secondary"></i>
-                </a>
             </li>
         @endif
 
@@ -112,7 +103,7 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('student.payments.index') }}">
+                <a class="nav-link" href="{{ route('student.payments.create') }}">
                     <span class="menu-title">Bayar SPP</span>
                     <i class="mdi mdi-credit-card menu-icon text-success"></i>
                 </a>

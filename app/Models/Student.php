@@ -24,7 +24,7 @@ class Student extends Model
     {
         return $this->belongsTo(StudentClass::class, 'class_id')->withTrashed();
     }
-    
+
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id')->withTrashed();
@@ -43,13 +43,10 @@ class Student extends Model
     protected static function booted()
     {
         static::created(function ($student) {
-            // Ubah nama → huruf kecil, hilangkan spasi & tanda baca
-            // "Andi Pratama" → "andipratama"
             $baseEmail = preg_replace('/[^a-z0-9]/', '', strtolower($student->name));
 
             $email = $baseEmail . '@sekolah.com';
 
-            // Cek email duplikat → tambahkan angka belakang
             $counter = 1;
             while (User::where('email', $email)->exists()) {
                 $email = $baseEmail . $counter . '@sekolah.com';
@@ -67,5 +64,10 @@ class Student extends Model
                 'user_id' => $user->id
             ]);
         });
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'student_id', 'id');
     }
 }

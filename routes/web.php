@@ -6,6 +6,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SPPRateController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
@@ -27,12 +28,10 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dasboard/admin', [DashboardController::class, 'admin'])->name('admin.dashboard');
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
-    Route::post('/users/update/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('users.delete');
 
     Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
@@ -72,6 +71,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('admin/payments/{id}', [PaymentController::class, 'adminShow'])->name('admin.payments.show');
     Route::post('admin/payments/{id}/approve', [PaymentController::class, 'approve'])->name('admin.payments.approve');
     Route::post('admin/payments/{id}/reject', [PaymentController::class, 'reject'])->name('admin.payments.reject');
+
+    Route::get('/report', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/report/arrears', [ReportController::class, 'arrears'])->name('reports.arrears');
+    Route::get('/arrears/{student}', [ReportController::class, 'arrearsDetail'])->name('arrears.detail');
 });
 
 Route::middleware(['auth', 'siswa'])->group(function () {
@@ -79,7 +82,6 @@ Route::middleware(['auth', 'siswa'])->group(function () {
     Route::get('/student/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
 
 
-    Route::get('student/payments', [PaymentController::class, 'studentIndex'])->name('student.payments.index');
     Route::get('student/payments/create', [PaymentController::class, 'create'])->name('student.payments.create');
     Route::post('student/payments/store', [PaymentController::class, 'store'])->name('student.payments.store');
     Route::get('student/payments/{id}', [PaymentController::class, 'studentShow'])->name('student.payments.show');

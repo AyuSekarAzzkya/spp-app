@@ -181,6 +181,8 @@
                 <div class="modal-body">
                     <form method="POST" id="formEditUser">
                         @csrf
+                        @method('PUT')
+
 
                         <div class="mb-3">
                             <label class="form-label">Nama</label>
@@ -217,7 +219,7 @@
 
 @push('scripts')
     <script>
-        const = $('#datatable').DataTable({
+        const table = $('#datatable').DataTable({
             pageLength: 10,
             ordering: true,
             language: {
@@ -250,7 +252,7 @@
                     let email = this.dataset.email;
                     let role = this.dataset.role;
 
-                    editForm.action = "{{ url('users/update') }}/" + id;
+                    editForm.action = "{{ url('users') }}/" + id;
                     document.getElementById('editName').value = name;
                     document.getElementById('editEmail').value = email;
                     document.getElementById('editRole').value = role;
