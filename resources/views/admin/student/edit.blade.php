@@ -11,7 +11,6 @@
                 </div>
             </div>
 
-            {{-- Alert --}}
             @if (session('success'))
                 <div class="alert alert-success shadow-sm">{{ session('success') }}</div>
             @endif
@@ -19,7 +18,6 @@
                 <div class="alert alert-danger shadow-sm">{{ session('error') }}</div>
             @endif
 
-            {{-- CARD --}}
             <div class="card shadow-lg border-0" style="border-radius: 12px;">
                 <div class="card-body px-4 py-4">
 
@@ -44,21 +42,21 @@
 
                         <div class="mb-3">
                             <label class="form-label">Gender (Opsional)</label>
-                            <select name="gender" class="form-select">
+                            <select name="gender" class="form-select" >
                                 <option value="">-- Pilih Jenis Kelamin --</option>
-                                <option value="L">Laki-laki</option>
-                                <option value="P">Perempuan</option>
+                                <option value="L" {{ $student->gender == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="P" {{ $student->gender == 'P' ? 'selected' : '' }}>Perempuan</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">No HP (Opsional)</label>
-                            <input type="text" name="phone" class="form-control" placeholder="Masukkan No HP">
+                            <input type="text" name="phone" class="form-control" placeholder="Masukkan No HP" value="{{ $student->phone }}">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Alamat (Opsional)</label>
-                            <input type="text" name="address" class="form-control" placeholder="Alamar Siswa" required>
+                            <input type="text" name="address" class="form-control" placeholder="Alamar Siswa" value="{{ $student->address }}" required>
                         </div>
 
                         <div class="mb-3">

@@ -11,7 +11,6 @@
                 </div>
             </div>
 
-            {{-- Alert --}}
             @if (session('success'))
                 <div class="alert alert-success shadow-sm">{{ session('success') }}</div>
             @endif
@@ -19,7 +18,6 @@
                 <div class="alert alert-danger shadow-sm">{{ session('error') }}</div>
             @endif
 
-            {{-- Card --}}
             <div class="card shadow-lg border-0 mt-2" style="border-radius: 12px;">
                 <div class="card-header bg-white border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0 fw-semibold">Daftar Kelas</h4>

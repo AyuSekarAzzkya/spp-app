@@ -6,11 +6,11 @@ use App\Models\AcademicYear;
 use App\Models\SppRate;
 use Illuminate\Http\Request;
 
-class SPPRateController extends Controller
+class SppRateController extends Controller
 {
     public function index()
     {
-        $rates = SPPRate::with('academicYear')->latest()->get();
+        $rates = SppRate::with('academicYear')->latest()->get();
         $years = AcademicYear::orderBy('year', 'asc')->get();
 
         return view('admin.spp.index', compact('years','rates'));

@@ -18,22 +18,43 @@
             $role = auth()->check() ? auth()->user()->role : null;
         @endphp
 
-        @if (in_array($role, ['admin', 'petugas']))
+        @if ($role == 'admin')
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{ route('admin.dashboard') }}">
                     <span class="menu-title">Dashboard</span>
                     <i class="mdi mdi-view-dashboard menu-icon text-primary"></i>
                 </a>
             </li>
-
-            <hr>
-
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('users.index') }}">
                     <span class="menu-title">Data Akun</span>
                     <i class="mdi mdi-account-group menu-icon text-danger"></i>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('academic-years.index') }}">
+                    <span class="menu-title">Tahun Ajaran</span>
+                    <i class="mdi mdi-calendar-clock menu-icon text-warning"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('spp.index') }}">
+                    <span class="menu-title">Nominal SPP</span>
+                    <i class="mdi mdi-cash-multiple menu-icon text-primary"></i>
+                </a>
+            </li>
+        @endif
+
+        @if ($role == 'petugas')
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('petugas.dashboard') }}">
+                    <span class="menu-title">Dashboard</span>
+                    <i class="mdi mdi-view-dashboard menu-icon text-primary"></i>
+                </a>
+            </li>
+        @endif
+
+        @if (in_array($role, ['admin', 'petugas']))
 
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('students.index') }}">
@@ -50,20 +71,6 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('academic-years.index') }}">
-                    <span class="menu-title">Tahun Ajaran</span>
-                    <i class="mdi mdi-calendar-clock menu-icon text-warning"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('spp.index') }}">
-                    <span class="menu-title">Nominal SPP</span>
-                    <i class="mdi mdi-cash-multiple menu-icon text-primary"></i>
-                </a>
-            </li>
-
-            <li class="nav-item border-top mt-2">
                 <a class="nav-link" href="{{ route('billing.students') }}">
                     <span class="menu-title">Tagihan Siswa</span>
                     <i class="mdi mdi-file-document-outline menu-icon text-secondary"></i>
@@ -77,22 +84,25 @@
                 </a>
             </li>
 
-
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" href="#menu-laporan" aria-expanded="false"
-                    aria-controls="menu-laporan">
+                <a class="nav-link" data-bs-toggle="collapse" href="#menu-laporan">
                     <span class="menu-title">Laporan</span>
                     <i class="mdi mdi-file-chart menu-icon text-warning"></i>
                     <i class="menu-arrow"></i>
                 </a>
                 <div class="collapse" id="menu-laporan">
                     <ul class="nav flex-column sub-menu">
-                        <li class="nav-item"><a class="nav-link" href="{{ route('reports.index') }}">Laporan</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('reports.arrears') }}">Laporan Tunggakan</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('reports.index') }}">Bulanan</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('reports.arrears') }}">Tunggakan</a>
+                        </li>
                     </ul>
                 </div>
             </li>
         @endif
+
 
         @if ($role === 'siswa')
             <li class="nav-item">

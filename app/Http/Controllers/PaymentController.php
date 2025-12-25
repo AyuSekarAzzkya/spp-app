@@ -146,7 +146,7 @@ class PaymentController extends Controller
         });
 
         return redirect()
-            ->route('student.payments.index')
+            ->route('student.payments.create')
             ->with('success', 'Bukti pembayaran berhasil dikirim.');
     }
 

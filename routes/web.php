@@ -8,7 +8,6 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SPPRateController;
-use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -26,7 +25,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/student/payments/history/{id}', [HistoryController::class, 'show'])->name('payments.history.show');
 });
 
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dasboard/admin', [DashboardController::class, 'admin'])->name('admin.dashboard');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -45,6 +44,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('spp-rates/store', [SPPRateController::class, 'store'])->name('spp.store');
     Route::post('spp-rates/update/{id}', [SPPRateController::class, 'update'])->name('spp.update');
     Route::delete('spp-rates/delete/{id}', [SPPRateController::class, 'destroy'])->name('spp.delete');
+});
+
+Route::middleware(['auth', 'role:petugas'])->group(function () {
+    Route::get('/dasboard/petugas', [DashboardController::class, 'petugas'])->name('petugas.dashboard');
+});
+// petugas dan admin
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
 
     Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
     Route::post('/store', [ClassController::class, 'store'])->name('classes.store');
@@ -75,16 +81,17 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/report', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/report/arrears', [ReportController::class, 'arrears'])->name('reports.arrears');
     Route::get('/arrears/{student}', [ReportController::class, 'arrearsDetail'])->name('arrears.detail');
+
+    Route::get('/reports/export/payments', [ReportController::class, 'exportPayments'])->name('reports.export.payments');
+    Route::get('/reports/export/arrears', [ReportController::class, 'exportArrears'])->name('reports.export.arrears');
 });
 
-Route::middleware(['auth', 'siswa'])->group(function () {
-    // siswa role
+// siswa only
+Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/student/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
-
 
     Route::get('student/payments/create', [PaymentController::class, 'create'])->name('student.payments.create');
     Route::post('student/payments/store', [PaymentController::class, 'store'])->name('student.payments.store');
     Route::get('student/payments/{id}', [PaymentController::class, 'studentShow'])->name('student.payments.show');
-    // upload ulang bukti
     Route::post('/student/payments/{payment}/upload-proof', [PaymentController::class, 'uploadAdditionalProof'])->name('student.payments.upload-proof');
 });

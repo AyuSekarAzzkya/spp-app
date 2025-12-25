@@ -44,7 +44,7 @@
                 </div>
 
                 {{-- TABLE --}}
-                <table class="table table-bordered table-striped align-middle">
+                <table class="table align-middle" id="datatable">
                     <thead class="table-light">
                         <tr>
                             <th width="50">No</th>
@@ -117,3 +117,12 @@
 
     </div>
 @endsection
+@push('scripts')
+   <script>
+    $(document).ready(function() {
+        $('#datatable').DataTable({
+            responsive: true
+        });
+    });
+   </script>
+@endpush

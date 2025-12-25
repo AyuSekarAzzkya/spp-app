@@ -137,7 +137,7 @@
                 <div class="modal-body">
                     <form method="POST" id="formEditAY">
                         @csrf
-                        @method('PUT')
+                        @method('POST')
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Tahun Ajaran</label>
