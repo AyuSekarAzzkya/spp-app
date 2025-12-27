@@ -100,79 +100,8 @@
         </div>
     </div>
 
-    {{-- MODAL ADD --}}
-    <div class="modal fade" id="modalAddClass" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content bg-white">
-
-                <div class="modal-header bg-white">
-                    <h5 class="modal-title">Tambah Kelas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form action="{{ route('classes.store') }}" method="POST">
-                        @csrf
-
-                        <div class="mb-3">
-                            <label class="form-label">Nama Kelas</label>
-                            <input type="text" name="name" class="form-control" placeholder="X RPL 1" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Jurusan</label>
-                            <input type="text" name="major" class="form-control" placeholder="RPL / AKL / dll">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Tingkat</label>
-                            <input type="text" name="grade_level" class="form-control" placeholder="X / XI / XII">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-2">Simpan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- MODAL EDIT --}}
-    <div class="modal fade" id="modalEditClass" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow bg-white">
-
-                <div class="modal-header bg-white">
-                    <h5 class="modal-title fw-semibold">Edit Kelas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form method="POST" id="formEditClass">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Nama Kelas</label>
-                            <input type="text" id="editName" name="name" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Jurusan</label>
-                            <input type="text" id="editMajor" name="major" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tingkat</label>
-                            <input type="text" id="editLevel" name="grade_level" class="form-control">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-2">Simpan Perubahan</button>
-                    </form>
-                </div>
-
-            </div>
-        </div>
-    </div>
+    @include('admin.classes.modal.add')
+    @include('admin.classes.modal.edit')
 @endsection
 
 @push('scripts')

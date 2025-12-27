@@ -108,130 +108,13 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalAddUser" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg bg-white">
-                <div class="modal-header border-0 pt-4 px-4">
-                    <h5 class="fw-bold d-flex align-items-center gap-2">
-                        <i class="bi bi-person-plus text-primary"></i> Tambah User Baru
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('users.store') }}" method="POST">
-                    @csrf
-                    <div class="modal-body px-4 py-3">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Nama Lengkap</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-person"></i></span>
-                                <input type="text" name="name" class="form-control bg-light border-0 py-2"
-                                    placeholder="Masukkan nama..." required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
-                                <input type="email" name="email" class="form-control bg-light border-0 py-2"
-                                    placeholder="email@contoh.com" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-lock"></i></span>
-                                <input type="password" name="password" class="form-control bg-light border-0 py-2"
-                                    placeholder="Minimal 8 karakter" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Role</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-shield-check"></i></span>
-                                <select name="role" class="form-select bg-light border-0 py-2" required>
-                                    <option value="" disabled selected>Pilih Role</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="petugas">Petugas</option>
-                                    <option value="siswa">Siswa</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 px-4 pb-4">
-                        <button type="button" class="btn btn-light rounded-pill px-4"
-                            data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Simpan Data</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg bg-white">
-                <div class="modal-header border-0 pt-4 px-4">
-                    <h5 class="fw-bold d-flex align-items-center gap-2">
-                        <i class="bi bi-pencil-square text-info"></i> Edit Informasi User
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" id="formEditUser">
-                    @csrf @method('PUT')
-                    <div class="modal-body px-4 py-3">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Nama Lengkap</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-person"></i></span>
-                                <input type="text" name="name" id="editName"
-                                    class="form-control bg-light border-0 py-2">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
-                                <input type="email" name="email" id="editEmail"
-                                    class="form-control bg-light border-0 py-2">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Ganti Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-key"></i></span>
-                                <input type="password" name="password" class="form-control bg-light border-0 py-2"
-                                    placeholder="Kosongkan jika tidak diubah">
-                            </div>
-                            <div class="form-text small text-muted">Abaikan jika tidak ingin mengganti password.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Role Pengguna</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-shield-check"></i></span>
-                                <select name="role" id="editRole" class="form-select bg-light border-0 py-2">
-                                    <option value="admin">Admin</option>
-                                    <option value="petugas">Petugas</option>
-                                    <option value="siswa">Siswa</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 px-4 pb-4">
-                        <button type="button" class="btn btn-light rounded-pill px-4"
-                            data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-info text-white rounded-pill px-4 shadow-sm">Simpan
-                            Perubahan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @include('admin.user.modal.add')
+    @include('admin.user.modal.edit')
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // 1. Inisialisasi DataTable
             const table = $('#datatable').DataTable({
                 pageLength: 10,
                 ordering: true,
@@ -248,24 +131,17 @@
                 dom: "<'row mb-3'<'col-md-6'l><'col-md-6'f>>t<'row mt-3'<'col-md-6'i><'col-md-6'p>>",
             });
 
-            // 2. Filter Role
             $('#filterRole').on('change', function() {
                 table.column(3).search($(this).val()).draw();
             });
 
-            // 3. LOGIKA EDIT
             $(document).on('click', '.btn-edit', function() {
-                // Tambahkan console.log untuk debugging
-                console.log("Tombol edit diklik");
 
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 const email = $(this).data('email');
                 const role = $(this).data('role');
 
-                console.log(id, name, email, role); // Cek apakah data muncul di console F12
-
-                // Pastikan ID form dan ID input sudah sesuai dengan yang ada di HTML modal
                 $('#formEditUser').attr('action', "{{ url('users') }}/" + id);
                 $('#editName').val(name);
                 $('#editEmail').val(email);
@@ -274,7 +150,6 @@
                 $('#modalEditUser').modal('show');
             });
 
-            // 4. Konfirmasi Hapus
             $(document).on('click', '.btn-delete', function(e) {
                 e.preventDefault();
                 const id = $(this).data('id');

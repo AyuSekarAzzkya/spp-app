@@ -4,7 +4,6 @@
     <div class="container">
         <div class="page-inner">
 
-            {{-- PAGE TITLE --}}
             <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
                 <div>
                     <h3 class="fw-bold mb-1">Siswa Kelas {{ $class->name }}</h3>
@@ -15,8 +14,7 @@
                 </a>
             </div>
 
-            {{-- CARD --}}
-            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+            <div class="card shadow-sm border-0" style="border-radius: 18px;">
                 <div class="card-header bg-white border-0 px-4 pt-4 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title fw-semibold mb-0">Daftar Siswa</h4>
 
@@ -26,7 +24,7 @@
                     </span>
                 </div>
 
-                <div class="card-body px-4 pb-4">
+                <div class="card-body px-2 pb-2">
 
                     <div class="table-responsive">
                         <table class="table align-middle" id="datatable">

@@ -14,21 +14,21 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle($request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (! Auth::check()) {
-            abort(403, 'Anda belum login');
+        if (!Auth::check()) {
+            return redirect('login');
         }
 
-        $roles = is_array($role) ? $role : explode('|', $role);
+        $user = Auth::user();
 
-        $roles = array_map('strtolower', array_map('trim', $roles));
-        $userRole = strtolower(trim((string) Auth::user()->role));
-
-        if (! in_array($userRole, $roles)) {
-            abort(403, 'Akses tidak diizinkan untuk role Anda.');
+        foreach ($roles as $role) {
+            $roleArray = explode('|', $role);
+            if (in_array($user->role, $roleArray)) {
+                return $next($request);
+            }
         }
 
-        return $next($request);
+        abort(403, 'Anda tidak memiliki hak akses.');
     }
 }

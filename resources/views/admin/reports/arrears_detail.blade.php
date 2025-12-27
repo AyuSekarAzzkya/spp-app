@@ -103,12 +103,11 @@
 
                     <div class="card-body p-4">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle border-0" id="datatable">
+                            <table class="table table-hover align-middle border-0" id="datatable" style="width: 100%">
                                 <thead class="bg-light">
                                     <tr class="text-secondary small text-uppercase">
                                         <th class="ps-3 border-0">#</th>
-                                        <th class="border-0">Bulan</th>
-                                        <th class="border-0">Tahun</th>
+                                        <th class="border-0">Bulan & Tahun</th>
                                         <th class="border-0 text-end">Nominal</th>
                                         <th class="border-0 text-center">Status</th>
                                     </tr>
@@ -117,12 +116,15 @@
                                     @forelse ($bills as $bill)
                                         <tr>
                                             <td class="ps-3 text-muted">{{ $loop->iteration }}</td>
-                                            <td><span
-                                                    class="fw-bold text-dark">{{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }}</span>
+                                            <td>
+                                                <span class="fw-bold text-dark d-block">
+                                                    {{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }}
+                                                </span>
+                                                <small class="text-muted">Tahun {{ $bill->year }}</small>
                                             </td>
-                                            <td>{{ $bill->year }}</td>
-                                            <td class="text-end fw-semibold">Rp
-                                                {{ number_format($bill->sppRate->amount ?? 0, 0, ',', '.') }}</td>
+                                            <td class="text-end fw-semibold">
+                                                Rp {{ number_format($bill->sppRate->amount ?? 0, 0, ',', '.') }}
+                                            </td>
                                             <td class="text-center">
                                                 <span
                                                     class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 px-3 py-2 rounded-pill small">
@@ -131,12 +133,7 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center py-5 text-muted">
-                                                <i class="fas fa-check-circle fa-3x mb-3 text-success opacity-25"></i>
-                                                <p class="mb-0">Tidak ada tunggakan ditemukan</p>
-                                            </td>
-                                        </tr>
+                                        {{-- DataTables akan menangani tampilan kosong lewat setting language --}}
                                     @endforelse
                                 </tbody>
                             </table>
@@ -153,23 +150,24 @@
         $(document).ready(function() {
             $('#datatable').DataTable({
                 responsive: true,
-                pageLength: 10,
+                paging: false, // Mematikan paging agar bisa scroll mulus
+                scrollY: '400px', // Membatasi tinggi tabel (Tabel tidak akan memanjang ke bawah)
+                scrollCollapse: true,
+                info: true,
                 language: {
                     search: "",
-                    lengthMenu: "_MENU_ data per halaman",
-                    searchPlaceholder: "Cari rincian bulan...",
+                    searchPlaceholder: "Cari bulan...",
+                    zeroRecords: "Semua tagihan sudah lunas ✨",
                     info: "Menampilkan _TOTAL_ bulan menunggak",
-                    paginate: {
-                        previous: '<i class="fas fa-angle-left"></i>',
-                        next: '<i class="fas fa-angle-right"></i>'
-                    }
+                    infoEmpty: "Tidak ada tunggakan",
                 },
                 drawCallback: function() {
                     $('.dataTables_filter input').addClass(
                         'form-control form-control-sm border-0 bg-light shadow-none px-3 rounded-pill'
-                    ).css('width', '250px');
+                    ).css('width', '200px');
                     $('.dataTables_info').addClass('small text-muted mt-3');
-                    $('.pagination').addClass('pagination-sm mt-3');
+                    // Menyesuaikan ukuran header agar pas dengan body saat scroll aktif
+                    $('#datatable').DataTable().columns.adjust();
                 }
             });
         });

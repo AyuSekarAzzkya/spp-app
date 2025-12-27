@@ -12,8 +12,6 @@
 
     <div class="row">
         <div class="col-md-8">
-
-            {{-- DETAIL TAGIHAN --}}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white fw-semibold">
                     Tagihan Dibayar
@@ -48,7 +46,6 @@
                 </div>
             </div>
 
-            {{-- TOTAL --}}
             <div class="alert alert-info fw-bold">
                 Total Dibayar:
                 Rp {{ number_format($payment->proofs->sum('amount'), 0, ',', '.') }}
@@ -57,8 +54,6 @@
         </div>
 
         <div class="col-md-4">
-
-            {{-- BUKTI TRANSFER --}}
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-semibold">
                     Bukti Transfer

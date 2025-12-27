@@ -98,60 +98,8 @@
         </div>
     </div>
 
-    {{-- MODAL ADD --}}
-    <div class="modal fade" id="modalAddAY" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-xl-down">
-            <div class="modal-content bg-white">
-
-                <div class="modal-header bg-white">
-                    <h5 class="modal-title">Tambah Tahun Ajaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form action="{{ route('academic-years.store') }}" method="POST">
-                        @csrf
-
-                        <div class="mb-3">
-                            <label class="form-label">Tahun Ajaran</label>
-                            <input type="text" name="year" class="form-control" placeholder="2025/2026" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-2">Simpan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- MODAL EDIT --}}
-    <div class="modal fade" id="modalEditAY" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow bg-white">
-
-                <div class="modal-header bg-white">
-                    <h5 class="modal-title fw-semibold">Edit Tahun Ajaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form method="POST" id="formEditAY">
-                        @csrf
-                        @method('POST')
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tahun Ajaran</label>
-                            <input type="text" name="year" class="form-control" id="editYear" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Simpan</button>
-                    </form>
-
-                </div>
-
-            </div>
-        </div>
-    </div>
+    @include('admin.academic_year.modal.add')
+    @include('admin.academic_year.modal.edit')
 @endsection
 
 @push('scripts')

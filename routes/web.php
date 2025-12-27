@@ -49,7 +49,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:petugas'])->group(function () {
     Route::get('/dasboard/petugas', [DashboardController::class, 'petugas'])->name('petugas.dashboard');
 });
-// petugas dan admin
+
 Route::middleware(['auth', 'role:admin|petugas'])->group(function () {
 
     Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
@@ -86,7 +86,6 @@ Route::middleware(['auth', 'role:admin|petugas'])->group(function () {
     Route::get('/reports/export/arrears', [ReportController::class, 'exportArrears'])->name('reports.export.arrears');
 });
 
-// siswa only
 Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/student/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
 
