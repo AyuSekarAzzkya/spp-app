@@ -4,7 +4,35 @@
     <div class="container-fluid py-4">
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm bg-primary text-white">
+
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-3"
+                        role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+                            <div>
+                                <strong>Berhasil!</strong> {{ session('success') }}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-3"
+                        role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                            <div>
+                                <strong>Gagal!</strong> {{ session('error') }}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                {{-- CARD HEADER --}}
+                <div class="card border-0 shadow-sm bg-primary text-white rounded-4">
                     <div class="card-body p-4">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
@@ -13,9 +41,10 @@
                                 </h3>
                                 <p class="mb-0 opacity-75">Kelola dan generate tagihan SPP bulanan untuk seluruh siswa.</p>
                             </div>
-                            <form action="{{ route('bills.generateAll') }}" method="POST">
+                            <form action="{{ route('bills.generateAll') }}" method="POST" id="generateForm">
                                 @csrf
-                                <button type="submit" class="btn btn-light btn-lg fw-bold shadow-sm px-4">
+                                <button type="submit" class="btn btn-light btn-lg fw-bold shadow-sm px-4 rounded-pill"
+                                    onclick="this.disabled=true; this.form.submit();">
                                     <i class="bi bi-gear-fill me-2"></i>Generate Tagihan
                                 </button>
                             </form>

@@ -13,10 +13,10 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('auth.login');
+    return view('landing.index');
 });
 
-
+Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
 
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'role:petugas'])->group(function () {
     Route::get('/dasboard/petugas', [DashboardController::class, 'petugas'])->name('petugas.dashboard');
 });
 // petugas dan admin
-Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+Route::middleware(['auth', 'role:admin|petugas'])->group(function () {
 
     Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
     Route::post('/store', [ClassController::class, 'store'])->name('classes.store');
@@ -91,7 +91,8 @@ Route::middleware(['auth', 'role:siswa'])->group(function () {
     Route::get('/student/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
 
     Route::get('student/payments/create', [PaymentController::class, 'create'])->name('student.payments.create');
+    Route::get('/student/payments', [PaymentController::class, 'studentIndex'])->name('student.payments.index');
+    Route::get('/student/payments/{id}', [PaymentController::class, 'studentShow'])->name('student.payments.show');
     Route::post('student/payments/store', [PaymentController::class, 'store'])->name('student.payments.store');
-    Route::get('student/payments/{id}', [PaymentController::class, 'studentShow'])->name('student.payments.show');
     Route::post('/student/payments/{payment}/upload-proof', [PaymentController::class, 'uploadAdditionalProof'])->name('student.payments.upload-proof');
 });

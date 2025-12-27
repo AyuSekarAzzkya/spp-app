@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('bills', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students');
+            $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
             $table->foreignId('spp_rate_id')->constrained('spp_rates');
-            $table->tinyInteger('month'); // 1-12
+            $table->tinyInteger('month');
             $table->integer('year');
             $table->date('due_date')->nullable();
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');

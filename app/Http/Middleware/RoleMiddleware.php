@@ -22,7 +22,10 @@ class RoleMiddleware
 
         $roles = is_array($role) ? $role : explode('|', $role);
 
-        if (! in_array(Auth::user()->role, $roles)) {
+        $roles = array_map('strtolower', array_map('trim', $roles));
+        $userRole = strtolower(trim((string) Auth::user()->role));
+
+        if (! in_array($userRole, $roles)) {
             abort(403, 'Akses tidak diizinkan untuk role Anda.');
         }
 

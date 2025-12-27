@@ -12,11 +12,12 @@ class BillController extends Controller
 {
     public function students()
     {
-        $activeYear = AcademicYear::where('is_active', true)->first();
+        $activeYear = AcademicYear::where('is_active', 1)->first();
 
         if (!$activeYear) {
             return back()->with('error', 'Tahun ajaran aktif belum diset.');
         }
+        
 
         $sppRates = SppRate::where('academic_year_id', $activeYear->id)->get();
 

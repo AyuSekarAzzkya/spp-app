@@ -65,7 +65,6 @@
     <script>
        $('#datatable').DataTable({
             responsive: true,
-            // Hilangkan default button datatables karena kita pakai tombol custom di atas
             dom: '<"d-flex justify-content-between mb-3"lf>rtip',
             language: {
                 search: "_INPUT_",

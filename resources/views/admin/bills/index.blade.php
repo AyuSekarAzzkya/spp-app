@@ -48,51 +48,52 @@
         <div class="card-body">
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover align-middle" id="bills-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="5%">No</th>
+                <table class="table table-hover align-middle mb-0" id="bills-table">
+                    <thead class="bg-light">
+                        <tr class="text-secondary small text-uppercase fw-bold">
+                            <th class="ps-4">No</th>
                             <th>Bulan</th>
                             <th>Jatuh Tempo</th>
-                            <th>Status</th>
-                            <th width="15%">Aksi</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center pe-4">Aksi</th>
                         </tr>
                     </thead>
-
                     <tbody>
-                        @forelse ($bills as $bill)
+                        @foreach ($bills as $bill)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
-
-                                <td>{{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }}</td>
-
-                                <td>{{ \Carbon\Carbon::parse($bill->due_date)->format('d-m-Y') }}</td>
-
+                                <td class="ps-4 text-muted">{{ $loop->iteration }}</td>
+                                <td class="fw-bold text-dark">
+                                    {{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }}
+                                </td>
                                 <td>
+                                    <span class="text-muted small">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        {{ \Carbon\Carbon::parse($bill->due_date)->format('d M Y') }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
                                     @if ($bill->status === 'paid')
-                                        <span class="badge bg-success">Lunas</span>
+                                        <span
+                                            class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                                            <i class="fas fa-check-circle me-1"></i> Lunas
+                                        </span>
                                     @else
-                                        <span class="badge bg-danger">Belum Lunas</span>
+                                        <span
+                                            class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
+                                            <i class="fas fa-clock me-1"></i> Belum Lunas
+                                        </span>
                                     @endif
                                 </td>
-
-                                <td>
+                                <td class="text-center pe-4">
                                     <a href="{{ route('admin.bills.show', $bill->id) }}"
-                                        class="btn btn-sm btn-primary w-100 shadow-sm">
-                                         Detail
+                                        class="btn btn-sm btn-primary px-3 shadow-sm fw-bold rounded-pill"
+                                        style="font-size: 11px;">
+                                        <i class="fas fa-search me-1"></i> LIHAT DETAIL
                                     </a>
                                 </td>
-
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">
-                                    Belum ada tagihan untuk siswa ini.
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
-
                 </table>
             </div>
 
@@ -105,17 +106,32 @@
     <script>
         $(document).ready(function() {
             $('#bills-table').DataTable({
-                pageLength: 10,
-                ordering: true,
+                // Mencegah error 'Unknown parameter' dengan mendefinisikan kolom secara eksplisit
+                "columnDefs": [{
+                        "orderable": false,
+                        "targets": [0, 3, 4]
+                    } // Matikan sorting di kolom No, Status, dan Aksi
+                ],
+                pageLength: 10, // Karena SPP biasanya 12 bulan
+                responsive: true,
                 language: {
-                    search: "Cari:",
-                    lengthMenu: "Tampilkan _MENU_ Data",
-                    zeroRecords: "Tidak ada data ditemukan",
-                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ Data",
+                    search: "",
+                    searchPlaceholder: "Cari tagihan...",
+                    lengthMenu: "_MENU_ siswa per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ tagihan",
                     paginate: {
-                        previous: "Sebelumnya",
-                        next: "Berikutnya"
+                        previous: '<i class="fas fa-chevron-left"></i>',
+                        next: '<i class="fas fa-chevron-right"></i>'
                     }
+                },
+                drawCallback: function() {
+                    // Styling agar senada dengan tabel sebelumnya
+                    $('.dataTables_filter input').addClass(
+                        'form-control form-control-sm border-0 bg-light shadow-none px-3 rounded-pill'
+                    ).css('width', '200px');
+                    $('.dataTables_length select').addClass(
+                        'form-select form-select-sm border-0 bg-light shadow-none rounded-3');
+                    $('.pagination').addClass('pagination-sm mt-3');
                 }
             });
         });

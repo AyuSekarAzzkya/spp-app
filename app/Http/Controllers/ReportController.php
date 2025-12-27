@@ -108,11 +108,9 @@ class ReportController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        /* ================= HEADER ================= */
         $headers = ['No', 'Nama', 'Tanggal Bayar', 'Status', 'Jumlah'];
         $sheet->fromArray($headers, null, 'A1');
 
-        /* ================= DATA ================= */
         $row = 2;
         foreach ($payments as $index => $payment) {
             $sheet->fromArray([
@@ -126,7 +124,6 @@ class ReportController extends Controller
             $row++;
         }
 
-        /* ================= EXPORT ================= */
         $writer = new Xlsx($spreadsheet);
         $filename = 'laporan_pembayaran.xlsx';
 
@@ -158,11 +155,9 @@ class ReportController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        /* ================= HEADER ================= */
         $headers = ['No', 'Nama', 'Kelas', 'Total Bulan Menunggak', 'Status'];
         $sheet->fromArray($headers, null, 'A1');
 
-        /* ================= DATA ================= */
         $row = 2;
         foreach ($arrears as $index => $item) {
             $student = $item->student;
@@ -178,7 +173,6 @@ class ReportController extends Controller
             $row++;
         }
 
-        /* ================= EXPORT ================= */
         $writer = new Xlsx($spreadsheet);
         $filename = 'laporan_tunggakan.xlsx';
 

@@ -1,15 +1,16 @@
 :root {
-    --primary-color: #2c3e50;
-    --info-color: #3498db;
-    --bg-light: #f8f9fa;
+    --navy-primary: #0F172A;
+    --orange-brand: #F87B1B;
+    --text-muted: #64748b;
+    --bg-light: #f8fafc;
 }
 
 body,
 html {
     height: 100%;
     margin: 0;
-    font-family: 'Inter', sans-serif;
-    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    background-color: var(--bg-light);
 }
 
 .main-wrapper {
@@ -17,98 +18,156 @@ html {
     height: 100vh;
 }
 
+/* Bagian Visual (Kiri) */
 .login-visual {
-    flex: 0 0 60%;
-    background: linear-gradient(135deg, rgba(44, 62, 80, 0.95), rgba(52, 152, 219, 0.8)),
-        url('https://images.unsplash.com/photo-1523050853061-8c44f3320361?auto=format&fit=crop&w=1350&q=80');
+    flex: 0 0 55%;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.8)),
+        url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1350&q=80');
     background-size: cover;
     background-position: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 40px 80px;
+    padding: 40px 100px;
     color: white;
     position: relative;
 }
 
 .brand-logo {
     position: absolute;
-    top: 30px;
+    top: 40px;
     left: 80px;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 800;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    letter-spacing: -1px;
+}
+
+.brand-logo i {
+    color: var(--orange-brand);
+}
+
+.visual-content {
+    max-width: 500px;
 }
 
 .visual-content h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 12px;
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+}
+
+.visual-content h1 span {
+    color: var(--orange-brand);
+    font-style: italic;
 }
 
 .visual-content p {
-    margin-bottom: 25px;
-    font-size: 1rem;
+    margin-bottom: 35px;
+    font-size: 1.1rem;
+    color: #cbd5e1;
 }
 
+/* Bagian Auth (Kanan) */
 .login-auth {
     flex: 1;
     background-color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 40px;
+    border-left: 1px solid #e2e8f0;
 }
 
 .auth-card {
     width: 100%;
-    max-width: 360px;
+    max-width: 400px;
 }
 
 .auth-card h2 {
-    font-size: 1.75rem;
-    margin-bottom: 5px;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--navy-primary);
+    letter-spacing: -1px;
 }
 
 .form-label {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.75rem;
-    color: #636e72;
-    margin-bottom: 4px;
+    color: var(--navy-primary);
+    margin-bottom: 8px;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .input-group-text {
-    background-color: #f8f9fa;
+    background-color: #f1f5f9;
+    border: 1.5px solid #e2e8f0;
     border-right: none;
-    color: #b2bec3;
-    padding: 8px 12px;
+    color: #94a3b8;
+    padding: 12px 15px;
 }
 
 .form-control {
+    border: 1.5px solid #e2e8f0;
     border-left: none;
-    padding: 8px 12px;
-    background-color: #f8f9fa;
-    font-size: 0.9rem;
+    padding: 12px 15px;
+    background-color: #f1f5f9;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--navy-primary);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background-color: #fff;
+    border-color: var(--orange-brand);
+    box-shadow: none;
+}
+
+.form-control:focus+.input-group-text {
+    border-color: var(--orange-brand);
 }
 
 .btn-login {
-    background-color: var(--primary-color);
+    background-color: var(--navy-primary);
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    margin-top: 10px;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    background-color: var(--orange-brand);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(248, 123, 27, 0.3);
+    color: white;
 }
 
 .footer-note {
-    margin-top: 25px;
-    color: #95a5a6;
-    font-size: 0.75rem;
+    margin-top: 40px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
     text-align: center;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .login-visual {
+        display: none;
+    }
+
+    .login-auth {
+        flex: 1;
+    }
 }

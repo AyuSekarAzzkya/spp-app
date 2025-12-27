@@ -29,6 +29,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     {{-- bootstrap icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    {{-- fontawesome --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    {{-- DataTables Responsive CSS --}}
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
+
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('css')
 </head>
@@ -52,7 +57,6 @@
         </div>
         <!-- page-body-wrapper ends -->
     </div>
-    <!-- container-scroller -->
     <!-- plugins:js -->
     <script src="{{ asset('template/dist') }}/assets/vendors/js/vendor.bundle.base.js"></script>
     <!-- endinject -->
@@ -76,6 +80,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- chart.js --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{-- DataTables Responsive JS --}}
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
     @stack('scripts')
 </body>
 

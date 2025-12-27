@@ -77,15 +77,6 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran ditolak.');
     }
 
-    public function studentShow($id)
-    {
-        $payment = Payment::with(['details.bill.sppRate', 'proofs'])
-            ->where('student_id', Auth::user()->student->id)
-            ->findOrFail($id);
-
-        return view('student.payments.show', compact('payment'));
-    }
-
     public function create()
     {
         $student = Auth::user()->student;
@@ -150,6 +141,26 @@ class PaymentController extends Controller
             ->with('success', 'Bukti pembayaran berhasil dikirim.');
     }
 
+    public function studentIndex()
+    {
+        $payments = Payment::with(['details.bill.sppRate', 'proofs'])
+            ->where('student_id', Auth::user()->student->id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('student.payments.index', compact('payments'));
+    }
+
+    public function studentShow($id)
+    {
+        $payment = Payment::with(['details.bill.sppRate', 'proofs'])
+            ->where('student_id', Auth::user()->student->id)
+            ->findOrFail($id);
+
+        return view('student.payments.show', compact('payment'));
+    }
+
     public function uploadAdditionalProof(Request $request, $paymentId)
     {
         $payment = Payment::where('id', $paymentId)
@@ -179,6 +190,7 @@ class PaymentController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Bukti pembayaran tambahan berhasil dikirim.');
+        return redirect()->route('student.payments.index', $paymentId)
+            ->with('success', 'Bukti baru berhasil diunggah dan status kembali menjadi Pending.');
     }
 }

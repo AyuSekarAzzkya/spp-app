@@ -45,11 +45,12 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Gender (Opsional)</label>
+                        <label class="form-label">Gender</label>
                         <select name="gender" class="form-select">
                             <option value="">-- Pilih Jenis Kelamin --</option>
                             <option value="L">Laki-laki</option>
                             <option value="P">Perempuan</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -59,7 +60,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Alamat (Opsional)</label>
-                        <input type="text" name="address" class="form-control" placeholder="Alamar Siswa" required>
+                        <input type="text" name="address" class="form-control" placeholder="Alamar Siswa">
                     </div>
 
                     <div class="mb-3">

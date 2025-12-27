@@ -55,7 +55,6 @@
         @endif
 
         @if (in_array($role, ['admin', 'petugas']))
-
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('students.index') }}">
                     <span class="menu-title">Data Siswa</span>
@@ -116,6 +115,13 @@
                 <a class="nav-link" href="{{ route('student.payments.create') }}">
                     <span class="menu-title">Bayar SPP</span>
                     <i class="mdi mdi-credit-card menu-icon text-success"></i>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('student.payments.index') }}">
+                    <span class="menu-title">Pembayaran Terbaru</span>
+                    <i class="mdi mdi-clock-fast menu-icon text-warning"></i>
                 </a>
             </li>
         @endif

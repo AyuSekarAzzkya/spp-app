@@ -40,7 +40,7 @@ class UserController extends Controller
 
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $id,
             'role'  => 'required|in:admin,petugas,siswa',
         ]);
 
@@ -48,7 +48,7 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->role = $request->role;
 
-        if ($request->password) {
+        if ($request->filled('password')) { 
             $request->validate(['password' => 'min:4']);
             $user->password = Hash::make($request->password);
         }

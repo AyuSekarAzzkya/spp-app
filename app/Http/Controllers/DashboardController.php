@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -60,25 +61,29 @@ class DashboardController extends Controller
         ));
     }
 
+
     public function petugas()
     {
-        $today = now()->startOfDay();
+        $today = Carbon::today();
 
         $pendingPaymentsCount = Payment::where('status', 'pending')->count();
 
         $arrearsCount = Bill::where('status', 'unpaid')
-            ->where('due_date', '<', now())
+            ->whereDate('due_date', '<', $today)
             ->distinct('student_id')
-            ->count();
+            ->count('student_id');
 
         $todayTransactionsCount = Payment::whereDate('created_at', $today)
-            ->whereIn('status', ['success', 'pending'])
+            ->whereIn('status', ['approved', 'pending'])
             ->count();
 
-        $todayRevenue = Payment::whereDate('payments.created_at', $today)
-            ->where('payments.status', 'success')
-            ->join('payment_proofs', 'payments.id', '=', 'payment_proofs.payment_id')
-            ->sum('payment_proofs.amount');
+        $todayRevenue = Payment::whereDate('created_at', $today)
+            ->where('status', 'approved')
+            ->with('proofs')
+            ->get()
+            ->sum(function ($payment) {
+                return $payment->proofs->sum('amount');
+            });
 
         $recentActivities = Payment::with(['student.class', 'proofs'])
             ->latest()
@@ -93,6 +98,7 @@ class DashboardController extends Controller
             'recentActivities'
         ));
     }
+
 
     public function admin()
     {

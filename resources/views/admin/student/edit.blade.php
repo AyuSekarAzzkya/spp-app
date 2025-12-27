@@ -56,7 +56,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Alamat (Opsional)</label>
-                            <input type="text" name="address" class="form-control" placeholder="Alamar Siswa" value="{{ $student->address }}" required>
+                            <input type="text" name="address" class="form-control" placeholder="Alamar Siswa" value="{{ $student->address }}">
                         </div>
 
                         <div class="mb-3">

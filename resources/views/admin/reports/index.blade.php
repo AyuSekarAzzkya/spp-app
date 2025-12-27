@@ -116,7 +116,7 @@
                                         {{ \Carbon\Carbon::parse($payment->payment_date)->translatedFormat('d M Y') }}
                                     </td>
                                     <td class="text-center">
-                                        @if ($payment->status == 'success' || $payment->status == 'paid')
+                                        @if ($payment->status === 'approved')
                                             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
                                                 <i class="bi bi-check-circle-fill me-1"></i> Sukses
                                             </span>
@@ -145,15 +145,15 @@
                 responsive: true,
                 dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rtip',
                 language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Cari siswa...",
-                lengthMenu: "_MENU_ data per halaman",
-                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                paginate: {
-                    previous: "<i class='bi bi-chevron-left'></i>",
-                    next: "<i class='bi bi-chevron-right'></i>"
+                    search: "_INPUT_",
+                    searchPlaceholder: "Cari siswa...",
+                    lengthMenu: "_MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        previous: "<i class='bi bi-chevron-left'></i>",
+                        next: "<i class='bi bi-chevron-right'></i>"
+                    }
                 }
-            }
             });
 
             $('.dataTables_filter input').addClass('form-control border-0 bg-light rounded-pill px-4 shadow-none');

@@ -21,6 +21,7 @@ class StudentController extends Controller
 
     public function data()
     {
+        // Pastikan nama relasi di 'with' sesuai dengan model (misal: class)
         $query = Student::with(['class', 'academicYear', 'user']);
 
         return DataTables::of($query)
@@ -29,33 +30,71 @@ class StudentController extends Controller
                 return $row->gender == 'L' ? 'Laki-laki' : ($row->gender == 'P' ? 'Perempuan' : '-');
             })
             ->addColumn('class_name', fn($row) => $row->class->name ?? '-')
-
-            ->addColumn('year_name', function ($row) {
-                return $row->academicYear->year ?? '-';
-            })
-            ->addColumn('email', function ($row) {
-                return $row->user->email ?? '-';
-            })
+            ->addColumn('year_name', fn($row) => $row->academicYear->year ?? '-')
             ->addColumn('status_badge', function ($row) {
                 $color = $row->status == 'active' ? 'success' : 'secondary';
-                return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
+                // Menggunakan bg-opacity-10 dan border-opacity-25 (Bootstrap 5)
+                return '<span class="badge bg-' . $color . ' bg-opacity-10 text-' . $color . ' border border-' . $color . ' border-opacity-25 px-3 py-2 rounded-pill">'
+                    . ucfirst($row->status) .
+                    '</span>';
             })
             ->addColumn('action', function ($row) {
                 return '
-                <div class="d-flex gap-2">
-                    <a href="' . route('students.detail', $row->id) . '" class="btn btn-sm btn-outline-info">Detail</a>
-                    <a href="' . route('students.edit', $row->id) . '" class="btn btn-sm btn-outline-warning">Edit</a>
-                    <button class="btn btn-sm btn-outline-danger btn-delete" data-id="' . $row->id . '">Hapus</button>
-                    <form id="deleteForm' . $row->id . '" action="' . route('students.destroy', $row->id) . '" method="POST" class="d-none">
-                        ' . csrf_field() . method_field('DELETE') . '
-                    </form>
-                </div>
-            ';
+                    <div class="text-center">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Aksi
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="' . route('students.detail', $row->id) . '">
+                                        <i class="fas fa-eye text-info me-2"></i> Detail
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="' . route('students.edit', $row->id) . '">
+                                        <i class="fas fa-edit text-warning me-2"></i> Edit
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button type="button"
+                                        class="dropdown-item d-flex align-items-center text-danger btn-delete"
+                                        data-id="' . $row->id . '">
+                                        <i class="fas fa-trash-alt me-2"></i> Hapus
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <form id="deleteForm' . $row->id . '"
+                            action="' . route('students.destroy', $row->id) . '"
+                            method="POST" class="d-none">
+                            ' . csrf_field() . method_field('DELETE') . '
+                        </form>
+                    </div>
+                ';
+            })
+
+            ->filterColumn('class_name', function ($query, $keyword) {
+                $query->whereHas('class', function ($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('year_name', function ($query, $keyword) {
+                $query->whereHas('academicYear', function ($q) use ($keyword) {
+                    $q->where('year', 'like', "%{$keyword}%");
+                });
             })
             ->rawColumns(['status_badge', 'action'])
             ->make(true);
     }
-
     public function create()
     {
         $classes = StudentClass::orderBy('grade_level')->get();
@@ -107,7 +146,7 @@ class StudentController extends Controller
         ]);
 
         $student->update(array_merge($request->all(), [
-            'status' => 'active',
+            'status' => $request->status,
         ]));
 
         return redirect()->route('students.index')
@@ -117,7 +156,10 @@ class StudentController extends Controller
 
     public function destroy($id)
     {
-        Student::findOrFail($id)->delete();
+        $student = Student::findOrFail($id)->delete();
+        $student->bills()->delete();
+
+        $student->delete();
         return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus!');
     }
 
@@ -185,7 +227,7 @@ class StudentController extends Controller
                     'nisn' => $nisn,
                     'gender' => $gender,
                     'phone' => $phone,
-                    'address'  >$address,
+                    'address'  > $address,
                     'class_id' => $class->id,
                     'academic_year_id' => $year->id,
                 ]

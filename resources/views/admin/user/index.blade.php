@@ -255,11 +255,17 @@
 
             // 3. LOGIKA EDIT
             $(document).on('click', '.btn-edit', function() {
+                // Tambahkan console.log untuk debugging
+                console.log("Tombol edit diklik");
+
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 const email = $(this).data('email');
                 const role = $(this).data('role');
 
+                console.log(id, name, email, role); // Cek apakah data muncul di console F12
+
+                // Pastikan ID form dan ID input sudah sesuai dengan yang ada di HTML modal
                 $('#formEditUser').attr('action', "{{ url('users') }}/" + id);
                 $('#editName').val(name);
                 $('#editEmail').val(email);

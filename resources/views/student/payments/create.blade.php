@@ -224,49 +224,136 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
             const checkboxes = document.querySelectorAll('.bill-check');
-            const totalDisplay = document.getElementById('totalAmount');
-            const countDisplay = document.getElementById('itemCount');
-            const amountInput = document.getElementById('amount');
-            const listContainer = document.getElementById('selectedItemsList');
+            const elements = {
+                total: document.getElementById('totalAmount'),
+                count: document.getElementById('itemCount'),
+                amountInput: document.getElementById('amount'),
+                listContainer: document.getElementById('selectedItemsList'),
+                fileInput: form.querySelector('input[type="file"]')
+            };
 
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    let total = 0;
-                    let count = 0;
-                    let htmlList = '';
+            /**
+             * 1. Logika Update Ringkasan Pembayaran
+             */
+            const updateSummary = () => {
+                let total = 0;
+                let count = 0;
+                let htmlList = '';
 
-                    checkboxes.forEach(cb => {
-                        if (cb.checked) {
-                            const month = cb.closest('label').querySelector('h6').innerText;
-                            const price = cb.closest('label').querySelector(
-                                '.text-end span').innerText;
+                checkboxes.forEach(cb => {
+                    if (cb.checked && cb.closest('.mb-3').style.display !== 'none') {
+                        const label = cb.closest('label');
+                        const month = label.querySelector('h6').innerText;
+                        const price = label.querySelector('.text-end span').innerText;
 
-                            total += parseInt(cb.dataset.amount);
-                            count++;
+                        total += parseInt(cb.dataset.amount);
+                        count++;
 
-                            htmlList += `
-                        <div class="d-flex justify-content-between mb-2">
+                        htmlList += `
+                        <div class="d-flex justify-content-between mb-2 animate__animated animate__fadeIn">
                             <span class="small text-muted">${month}</span>
                             <span class="small fw-bold text-dark">${price}</span>
-                        </div>
-                    `;
+                        </div>`;
+                    }
+                });
+
+                elements.listContainer.innerHTML = count > 0 ? htmlList :
+                    `<div class="text-center py-3 border rounded-3 border-dashed bg-light">
+                    <small class="text-muted">Pilih bulan di sebelah kiri</small>
+                </div>`;
+
+                elements.total.innerText = total.toLocaleString('id-ID');
+                elements.count.innerText = `${count} Bulan`;
+                elements.amountInput.value = total;
+            };
+
+            /**
+             * 2. Logika Menghapus Tagihan yang Terbayar
+             */
+            const removePaidBills = (selectedItems) => {
+                selectedItems.forEach(cb => {
+                    const billElement = cb.closest('.mb-3');
+                    billElement.classList.add('animate__animated', 'animate__fadeOutLeft');
+
+                    setTimeout(() => {
+                        billElement.remove();
+                        updateSummary();
+
+                        // Jika semua tagihan habis, reload untuk view "Tagihan Nihil"
+                        if (document.querySelectorAll('.bill-check').length === 0) {
+                            location.reload();
+                        }
+                    }, 500);
+                });
+                elements.fileInput.value = '';
+            };
+
+            /**
+             * 3. Handler Submit Form (AJAX)
+             */
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const selected = document.querySelectorAll('.bill-check:checked');
+
+                if (selected.length === 0) {
+                    return Swal.fire({
+                        icon: 'warning',
+                        title: 'Pilih Tagihan',
+                        text: 'Silahkan pilih minimal satu bulan.'
+                    });
+                }
+
+                // Tampilkan Loading
+                Swal.fire({
+                    title: 'Memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                try {
+                    const formData = new FormData(this);
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
 
-                    if (count > 0) {
-                        listContainer.innerHTML = htmlList;
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pembayaran Berhasil!',
+                            text: 'Bukti pembayaran sedang diverifikasi admin.',
+                            confirmButtonColor: '#4e73df'
+                        }).then(() => removePaidBills(selected));
                     } else {
-                        listContainer.innerHTML =
-                            '<div class="text-center py-3 border rounded-3 border-dashed bg-light">' +
-                            '<small class="text-muted">Pilih bulan di sebelah kiri</small></div>';
+                        throw new Error('Gagal mengirim data');
                     }
-
-                    totalDisplay.innerText = total.toLocaleString('id-ID');
-                    countDisplay.innerText = count + ' Bulan';
-                    amountInput.value = total;
-                });
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: 'Gagal menghubungi server.'
+                    });
+                }
             });
+
+            // Inisialisasi Event
+            checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
         });
+
+        /**
+         * 4. Handler Flash Message dari Session Laravel
+         */
+        @if (session('success') || session('error'))
+            Swal.fire({
+                icon: '{{ session('success') ? 'success' : 'error' }}',
+                title: '{!! session('success') ?? session('error') !!}',
+                confirmButtonColor: '#4e73df'
+            });
+        @endif
     </script>
 @endpush

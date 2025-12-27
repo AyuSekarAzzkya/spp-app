@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class HistoryController extends Controller
@@ -20,8 +19,7 @@ class HistoryController extends Controller
                 ->where('student_id', $student->id)
                 ->latest()
                 ->get();
-        }
-        else {
+        } else {
             $payments = Payment::with(['student', 'details.bill', 'proofs'])
                 ->latest()
                 ->get();
@@ -33,11 +31,9 @@ class HistoryController extends Controller
     {
         $payment = Payment::with([
             'student',
-            'details.bill',
+            'details.bill.sppRate',
             'proofs',
-        ])
-            ->where('student_id', FacadesAuth::user()->student->id)
-            ->findOrFail($id);
+        ])->findOrFail($id);
 
         return view('history.show', compact('payment'));
     }

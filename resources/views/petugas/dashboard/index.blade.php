@@ -1,95 +1,179 @@
-@extends('template') {{-- Sesuaikan dengan nama layout Anda --}}
+@extends('template')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <div>
-                <h3 class="fw-bold mb-0">Dashboard Petugas</h3>
-                <p class="text-muted">Selamat bekerja! Pantau aktivitas pembayaran hari ini.</p>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <style>
+        .card {
+            border-radius: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .icon-shape {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(45deg, #f6ad55, #ed8936);
+        }
+
+        .bg-gradient-danger {
+            background: linear-gradient(45deg, #fc8181, #f56565);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(45deg, #68d391, #48bb78);
+        }
+
+        /* Styling DataTables agar menyatu dengan desain */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0;
+            margin-left: 5px;
+        }
+
+        div.dataTables_wrapper div.dataTables_info {
+            padding-top: 1.5em;
+            padding-left: 1.5em;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_paginate {
+            padding: 1.5em;
+        }
+
+        .table thead th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .badge-soft-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-soft-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-soft-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-soft-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+    </style>
+
+    <div class="container-fluid py-4">
+        {{-- HEADER --}}
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h3 class="fw-bold text-dark mb-1">Dashboard Petugas</h3>
+                <p class="text-muted mb-0">Selamat datang kembali! Berikut ringkasan aktivitas hari ini.</p>
             </div>
-            <div class="text-end">
-                <span class="badge bg-primary px-3 py-2">{{ now()->format('d M Y') }}</span>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <div class="d-inline-flex align-items-center bg-white border rounded-pill px-3 py-2 shadow-sm">
+                    <i class="mdi mdi-calendar-range text-primary me-2"></i>
+                    <span class="fw-semibold small">{{ now()->translatedFormat('l, d F Y') }}</span>
+                </div>
             </div>
         </div>
 
         {{-- ROW WIDGET UTAMA --}}
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm" style="border-radius: 15px;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="flex-shrink-0 bg-warning text-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width: 45px; height: 45px;">
-                                <i class="mdi mdi-clock-check mdi-24px"></i>
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div>
+                                <p class="text-muted fw-medium small mb-1">Pending Approval</p>
+                                <h2 class="fw-bold mb-0">{{ $pendingPaymentsCount }}</h2>
+                                <span class="text-warning small fw-semibold"><i class="mdi mdi-clock-check"></i> Butuh
+                                    Verifikasi</span>
                             </div>
-                            <div class="ms-3">
-                                <h6 class="text-muted small mb-0">Pending Approval</h6>
+                            <div class="icon-shape bg-gradient-warning text-white shadow-warning">
+                                <i class="mdi mdi-clock-outline mdi-24px"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold mb-0">{{ $pendingPaymentsCount }}</h2>
-                        <p class="text-muted small mb-0">Butuh konfirmasi segera</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm" style="border-radius: 15px;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="flex-shrink-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width: 45px; height: 45px;">
-                                <i class="mdi mdi-account-alert mdi-24px"></i>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div>
+                                <p class="text-muted fw-medium small mb-1">Siswa Menunggak</p>
+                                <h2 class="fw-bold mb-0">{{ $arrearsCount }}</h2>
+                                <span class="text-danger small fw-semibold"><i class="mdi mdi-alert-circle"></i> Jatuh
+                                    Tempo</span>
                             </div>
-                            <div class="ms-3">
-                                <h6 class="text-muted small mb-0">Siswa Menunggak</h6>
+                            <div class="icon-shape bg-gradient-danger text-white shadow-danger">
+                                <i class="mdi mdi-account-off mdi-24px"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold mb-0">{{ $arrearsCount }}</h2>
-                        <p class="text-muted small mb-0">Lewat jatuh tempo</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm" style="border-radius: 15px;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="flex-shrink-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width: 45px; height: 45px;">
-                                <i class="mdi mdi-account-group mdi-24px"></i>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div>
+                                <p class="text-muted fw-medium small mb-1">Total Setoran Hari Ini</p>
+                                <h2 class="fw-bold mb-0">Rp {{ number_format($todayRevenue ?? 0, 0, ',', '.') }}</h2>
+                                <span class="text-success small fw-semibold"><i class="mdi mdi-trending-up"></i> Dana
+                                    Masuk</span>
                             </div>
-                            <div class="ms-3">
-                                <h6 class="text-muted small mb-0">Siswa Dilayani</h6>
+                            <div class="icon-shape bg-gradient-success text-white shadow-success">
+                                <i class="mdi mdi-cash-multiple mdi-24px"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold mb-0">{{ $todayTransactionsCount }}</h2>
-                        <p class="text-muted small mb-0">Total pelayanan hari ini</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-white"
-                    style="border-radius: 15px; background: linear-gradient(45deg, #4e73df, #224abe);">
-                    <div class="card-body text-center">
-                        <h6 class="small text-uppercase opacity-75 mb-2">Kas Masuk Hari Ini</h6>
-                        <h3 class="fw-bold mb-0">Rp {{ number_format($todayRevenue, 0, ',', '.') }}</h3>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            {{-- LIST AKTIVITAS TERBARU --}}
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm" style="border-radius: 15px;">
-                    <div class="card-header bg-transparent border-0 py-3">
+            <div class="col-12">
+                @if ($pendingPaymentsCount > 0)
+                    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center"
+                        style="border-radius: 12px;">
+                        <i class="mdi mdi-bell-ring mdi-24px me-3 text-warning"></i>
+                        <div>
+                            <strong>Perhatian:</strong> Ada {{ $pendingPaymentsCount }} transaksi menunggu persetujuan. <a
+                                href="{{ route('admin.payments.index') }}" class="alert-link">Verifikasi Sekarang</a>.
+                        </div>
+                    </div>
+                @endif
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-4 px-4">
                         <h5 class="fw-bold mb-0">Aktivitas Transaksi Terbaru</h5>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card-body p-0 pb-3">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light">
+                            <table id="transactionTable" class="table table-hover align-middle mb-0 w-100">
+                                <thead class="bg-light text-muted">
                                     <tr>
                                         <th class="ps-4">Siswa</th>
                                         <th>Nominal</th>
@@ -99,71 +183,78 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($recentActivities as $item)
+                                    @foreach ($recentActivities as $item)
                                         <tr>
                                             <td class="ps-4">
-                                                <div class="fw-bold text-dark">{{ $item->student->name }}</div>
-                                                <div class="small text-muted">{{ $item->student->class->name ?? '-' }}</div>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-soft-primary rounded-circle p-2 me-3 text-primary fw-bold d-flex align-items-center justify-content-center"
+                                                        style="width: 38px; height: 38px;">
+                                                        {{ substr($item->student->name, 0, 1) }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold text-dark">{{ $item->student->name }}</div>
+                                                        <div class="small text-muted">
+                                                            {{ $item->student->class->name ?? 'N/A' }}</div>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td class="fw-bold">
-                                                {{-- Mengambil amount dari relasi paymentProof --}}
-                                                Rp {{ number_format($item->paymentProof->amount ?? 0, 0, ',', '.') }}
+                                            <td class="fw-bold text-dark">
+                                                Rp {{ number_format($item->proofs->sum('amount'), 0, ',', '.') }}
                                             </td>
-                                            <td>{{ strtoupper($item->payment_method ?? 'Cash') }}</td>
                                             <td>
-                                                @if ($item->status == 'pending')
-                                                    <span class="badge bg-warning text-dark">Pending</span>
-                                                @elseif($item->status == 'success')
-                                                    <span class="badge bg-success">Success</span>
-                                                @else
-                                                    <span class="badge bg-danger">Rejected</span>
-                                                @endif
+                                                <span class="small fw-medium text-secondary">
+                                                    <i
+                                                        class="mdi mdi-credit-card-outline me-1"></i>{{ strtoupper($item->payment_method ?? 'Cash') }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $statusClass =
+                                                        [
+                                                            'pending' => 'badge-soft-warning',
+                                                            'approved' => 'badge-soft-success',
+                                                            'rejected' => 'badge-soft-danger',
+                                                        ][$item->status] ?? 'badge-soft-secondary';
+                                                @endphp
+                                                <span class="badge {{ $statusClass }} px-3 py-2 rounded-pill">
+                                                    {{ ucfirst($item->status) }}
+                                                </span>
                                             </td>
                                             <td class="text-end pe-4">
-                                                <a href="#"
-                                                    class="btn btn-sm btn-outline-primary rounded-pill">Detail</a>
+                                                <a href="{{ route('admin.payments.show', $item->id) }}"
+                                                    class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                    Detail
+                                                </a>
                                             </td>
                                         </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">Belum ada transaksi
-                                                masuk.</td>
-                                        </tr>
-                                    @endforelse
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {{-- INFO PANEL --}}
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="mdi mdi-lightbulb-on text-warning me-2"></i>Quick Actions</h6>
-                        <div class="d-grid gap-2">
-                            <a href="#" class="btn btn-primary text-start px-3 py-2">
-                                <i class="mdi mdi-cash-multiple me-2"></i> Input Bayar Loket
-                            </a>
-                            <a href="#" class="btn btn-outline-secondary text-start px-3 py-2">
-                                <i class="mdi mdi-magnify me-2"></i> Cari Data Siswa
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ALERT PENTING --}}
-                @if ($pendingPaymentsCount > 0)
-                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center" role="alert"
-                        style="border-radius: 15px;">
-                        <i class="mdi mdi-alert-circle mdi-24px me-3"></i>
-                        <div>
-                            Ada <strong>{{ $pendingPaymentsCount }}</strong> pembayaran menunggu konfirmasi Anda.
-                        </div>
-                    </div>
-                @endif
-            </div>
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#transactionTable').DataTable({
+                "pageLength": 10,
+                "language": {
+                    "search": "Cari Transaksi:",
+                    "lengthMenu": "Tampilkan _MENU_ data",
+                    "zeroRecords": "Data tidak ditemukan",
+                    "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+                    "infoEmpty": "Tidak ada data tersedia",
+                    "paginate": {
+                        "previous": '<i class="mdi mdi-chevron-left"></i>',
+                        "next": '<i class="mdi mdi-chevron-right"></i>'
+                    }
+                },
+                "dom": '<"d-flex justify-content-between align-items-center p-4"<"fw-bold"f><"small"l>>rtip'
+            });
+        });
+    </script>
+@endpush

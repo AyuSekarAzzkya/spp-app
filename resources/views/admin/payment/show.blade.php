@@ -18,6 +18,13 @@
             </a>
         </div>
 
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+
         <div class="row g-4">
 
             <div class="col-lg-7">
@@ -157,10 +164,9 @@
 
                         @if ($payment->status === 'pending')
                             <form action="{{ route('admin.payments.approve', $payment->id) }}" method="POST"
-                                class="mb-3">
+                                id="approveForm" class="mb-3">
                                 @csrf
-                                <button type="submit" class="btn btn-success w-100 fw-bold"
-                                    onclick="return confirm('Yakin ingin menyetujui pembayaran ini?')"
+                                <button type="button" class="btn btn-success w-100 fw-bold" id="btnApprove"
                                     {{ $payment->proofs->sum('amount') < $totalTagihan ? 'disabled' : '' }}>
                                     <i class="bi bi-check-circle me-2"></i>
                                     Setujui Pembayaran
@@ -208,3 +214,25 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script>
+        document.getElementById('btnApprove').addEventListener('click', function(e) {
+            Swal.fire({
+                title: 'Konfirmasi Persetujuan',
+                text: "Apakah Anda yakin semua bukti transfer sudah valid? Tagihan akan otomatis ditandai sebagai lunas.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Setujui!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                borderRadius: '15px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('approveForm').submit();
+                }
+            })
+        });
+    </script>
+@endpush
