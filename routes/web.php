@@ -23,6 +23,8 @@ Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->
 Route::middleware(['auth'])->group(function () {
     Route::get('/student/payments/history', [HistoryController::class, 'index'])->name('payments.history');
     Route::get('/student/payments/history/{id}', [HistoryController::class, 'show'])->name('payments.history.show');
+    Route::get('/payments/proofs/{proof}', [PaymentController::class, 'showProof'])->name('payments.proof.show');
+    Route::post('/ai/query', [App\Http\Controllers\AiAgentController::class, 'handleQuery'])->name('ai.query');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

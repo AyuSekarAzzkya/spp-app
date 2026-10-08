@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Hash;
 
 class Student extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'nis',
         'nisn',
@@ -40,17 +43,34 @@ class Student extends Model
         return $this->hasMany(Bill::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'student_id', 'id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
     protected static function booted()
     {
         static::created(function ($student) {
-            $baseEmail = preg_replace('/[^a-z0-9]/', '', strtolower($student->name));
+            // Jika user_id sudah diset, tidak perlu membuat user otomatis
+            if ($student->user_id) {
+                return;
+            }
 
-            $email = $baseEmail . '@sekolah.com';
+            $email = $student->nis . '@siswa.sekolah.id';
 
-            $counter = 1;
-            while (User::where('email', $email)->exists()) {
-                $email = $baseEmail . $counter . '@sekolah.com';
-                $counter++;
+            // Fallback jika email tersebut sudah ada
+            if (User::where('email', $email)->exists()) {
+                $email = $student->nis . '.' . time() . '@siswa.sekolah.id';
             }
 
             $user = User::create([
@@ -60,14 +80,18 @@ class Student extends Model
                 'role'     => 'siswa',
             ]);
 
-            $student->update([
-                'user_id' => $user->id
+            // Assign role Spatie jika role 'siswa' terdaftar
+            if (function_exists('spatie_permission_exists') || method_exists($user, 'assignRole')) {
+                try {
+                    $user->assignRole('siswa');
+                } catch (\Throwable $e) {
+                    // Ignore if role not seeded yet
+                }
+            }
+
+            $student->updateQuietly([
+                'user_id' => $user->id,
             ]);
         });
-    }
-
-    public function payments()
-    {
-        return $this->hasMany(Payment::class, 'student_id', 'id');
     }
 }

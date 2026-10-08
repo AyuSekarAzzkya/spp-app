@@ -18,6 +18,8 @@ class SettingSeeder extends Seeder
             ['key' => 'school_address', 'value' => 'Jl. Merdeka No. 10'],
             ['key' => 'school_phone', 'value' => '081234567890'],
             ['key' => 'school_account_number', 'value' => '12345678910'],
+            ['key' => 'school_bank_name', 'value' => 'Bank Mandiri'],
+            ['key' => 'school_account_holder', 'value' => 'Bendahara SPP'],
         ];
 
         foreach ($data as $item) {

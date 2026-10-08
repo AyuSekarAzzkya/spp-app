@@ -1,170 +1,207 @@
 @extends('template')
 
 @section('content')
-    <div class="container-fluid py-4">
-        <div class="row mb-4">
-            <div class="col-12">
-
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-3"
-                        role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-check-circle-fill me-2 fs-4"></i>
-                            <div>
-                                <strong>Berhasil!</strong> {{ session('success') }}
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-
-                @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-3"
-                        role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
-                            <div>
-                                <strong>Gagal!</strong> {{ session('error') }}
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-
-                {{-- CARD HEADER --}}
-                <div class="card border-0 shadow-sm bg-primary text-white rounded-4">
-                    <div class="card-body p-4">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                            <div class="mb-3 mb-md-0">
-                                <h3 class="fw-bold mb-1">
-                                    <i class="bi bi-receipt-cutoff me-2"></i>Manajemen Tagihan Siswa
-                                </h3>
-                                <p class="mb-0 opacity-75">Kelola dan generate tagihan SPP bulanan untuk seluruh siswa.</p>
-                            </div>
-                            <form action="{{ route('bills.generateAll') }}" method="POST" id="generateForm">
-                                @csrf
-                                <button type="submit" class="btn btn-light btn-lg fw-bold shadow-sm px-4 rounded-pill"
-                                    onclick="this.disabled=true; this.form.submit();">
-                                    <i class="bi bi-gear-fill me-2"></i>Generate Tagihan
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="page-inner">
+    {{-- Header Section --}}
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h2 class="page-header-title mb-1">Manajemen Tagihan SPP Siswa</h2>
+            <p class="page-header-subtitle mb-0">Kelola distribusi lembar tagihan bulanan dan generate tagihan otomatis seluruh siswa aktif.</p>
         </div>
-
-        <div class="row g-4 mb-4">
-            <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center p-4">
-                        <div class="bg-info-subtle text-info rounded-circle p-3 me-3">
-                            <i class="bi bi-calendar-check fs-3"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.75rem;">TAHUN AJARAN
-                                AKTIF</small>
-                            <span class="fs-5 fw-bold text-dark">{{ $activeYear->year }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center p-4">
-                        <div class="bg-success-subtle text-success rounded-circle p-3 me-3">
-                            <i class="bi bi-tags fs-3"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.75rem;">TARIF SPP
-                                STANDAR</small>
-                            <span class="fs-5 fw-bold text-dark">
-                                @if ($sppRates->count())
-                                    Rp{{ number_format($sppRates->first()->amount, 0, ',', '.') }}
-                                @else
-                                    <span class="text-danger">Belum diatur</span>
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#generateModal">
+                <i class="mdi mdi-cogs me-1"></i> Generate Tagihan SPP
+            </button>
         </div>
+    </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3 border-0">
+    {{-- Alert Messages --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="mdi mdi-check-circle me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="mdi mdi-alert-circle me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- Info Cards (Academic Year & SPP Rate) --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card p-3 mb-0">
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-people-fill text-primary me-2 fs-5"></i>
-                    <h5 class="card-title mb-0 fw-bold">Daftar Siswa</h5>
+                    <div class="stat-icon-wrapper stat-icon-navy me-3">
+                        <i class="mdi mdi-calendar-check"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">Tahun Ajaran Aktif</small>
+                        <h4 class="fw-bold mb-0 text-navy">{{ $activeYear->year }}</h4>
+                    </div>
                 </div>
             </div>
-            <div class="card-body p-4">
-                <div class="table-responsive">
-                    <table id="students-table" class="table table-hover align-middle border-light">
-                        <thead class="bg-light">
-                            <tr class="text-secondary">
-                                <th class="ps-3" width="5%">NO</th>
-                                <th>NAMA LENGKAP</th>
-                                <th>KELAS</th>
-                                <th>NIS</th>
-                                <th class="text-center" width="15%">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($students as $s)
-                                <tr>
-                                    <td class="ps-3 fw-medium text-muted">{{ $loop->iteration }}</td>
-                                    <td>
-                                        <div class="fw-bold text-dark">{{ $s->name }}</div>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
-                                            {{ $s->class->name ?? '-' }}
-                                        </span>
-                                    </td>
-                                    <td><code class="text-dark fw-bold">{{ $s->nis }}</code></td>
-                                    <td class="text-center">
-                                        <a href="{{ route('billing.index', $s->id) }}"
-                                            class="btn btn-outline-primary btn-sm rounded-pill px-3 transition-all hover-shadow">
-                                            <i class="bi bi-eye me-1"></i> Lihat Tagihan
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card p-3 mb-0">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon-wrapper stat-icon-orange me-3">
+                        <i class="mdi mdi-cash-multiple"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">Tarif SPP Standar</small>
+                        <h4 class="fw-bold mb-0 text-dark">
+                            @if ($sppRates->count())
+                                Rp {{ number_format($sppRates->first()->amount, 0, ',', '.') }}
+                            @else
+                                <span class="text-danger small">Belum diatur</span>
+                            @endif
+                        </h4>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Students Bill List --}}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="d-flex align-items-center fw-bold">
+                <i class="mdi mdi-account-cash-outline me-2" style="color: var(--navy-primary); font-size: 1.2rem;"></i>
+                Daftar Siswa & Lembar Tagihan
+            </span>
+            <span class="badge badge-secondary">{{ count($students) }} Siswa</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 w-100" id="billsTable">
+                    <thead>
+                        <tr>
+                            <th class="ps-3" style="width: 50px;">No</th>
+                            <th>Siswa</th>
+                            <th>Kelas</th>
+                            <th>Tahun Ajaran</th>
+                            <th class="text-center" style="width: 140px;">Status Tagihan</th>
+                            <th class="text-center" style="width: 130px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($students as $idx => $student)
+                            <tr>
+                                <td class="text-muted small ps-3">{{ $idx + 1 }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width: 36px; height: 36px; background: var(--navy-primary); font-size: 0.85rem;">
+                                            {{ strtoupper(substr($student->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ $student->name }}</div>
+                                            <small class="text-muted">NIS: {{ $student->nis }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ $student->class->name ?? '-' }}</td>
+                                <td>{{ $student->academicYear->year ?? '-' }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        @if(($student->unpaid_bills_count ?? 0) > 0)
+                                            <span class="badge badge-unpaid">{{ $student->unpaid_bills_count }} Belum Lunas</span>
+                                        @else
+                                            <span class="badge badge-lunas"><i class="mdi mdi-check"></i> Semua Lunas</span>
+                                        @endif
+                                        <small class="text-muted">{{ $student->paid_bills_count ?? 0 }} Lunas</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('billing.index', $student->id) }}" class="btn btn-sm btn-primary text-nowrap">
+                                        <i class="mdi mdi-clipboard-text-outline me-1"></i> Buka Tagihan
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            {{-- DataTables menangani tampilan kosong secara otomatis lewat language setting --}}
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Generate Tagihan --}}
+<div class="modal fade" id="generateModal" tabindex="-1" aria-labelledby="generateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center" id="generateModalLabel">
+                    <i class="mdi mdi-cogs text-white me-2 fs-5"></i> Generate Tagihan SPP Bulanan
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('bills.generateAll') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        Fitur ini akan membuat tagihan SPP untuk seluruh siswa aktif pada bulan dan tahun yang dipilih. Sistem bersifat <strong>idempotent</strong> (tagihan yang sudah ada tidak akan diduplikasi).
+                    </p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark">Bulan Tagihan</label>
+                            <select name="month" class="form-select" required>
+                                @for($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>
+                                        {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                                    </option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark">Tahun</label>
+                            <input type="number" name="year" class="form-control" value="{{ now()->year }}" required min="2020" max="2050">
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">
+                            <i class="mdi mdi-information-outline me-1"></i> Tanggal jatuh tempo otomatis ditetapkan pada tanggal <strong>10</strong> setiap bulannya.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary d-flex align-items-center">
+                        <i class="mdi mdi-play me-1"></i> Generate Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
-    <script>
-        $(document).ready(function() {
-            $('#students-table').DataTable({
-                pageLength: 10,
-                ordering: true,
-                language: {
-                    search: "",
-                    searchPlaceholder: "Cari nama atau NIS siswa...",
-                    lengthMenu: "_MENU_ siswa per halaman",
-                    zeroRecords: "Data tidak ditemukan",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ siswa",
-                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 siswa",
-                    paginate: {
-                        previous: "<i class='bi bi-chevron-left'></i>",
-                        next: "<i class='bi bi-chevron-right'></i>"
-                    }
-                },
-                dom: "<'row mb-3'<'col-md-6'l><'col-md-6'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row mt-3'<'col-md-5'i><'col-md-7'p>>",
-            });
-
-            $('.dataTables_filter input').addClass('form-control shadow-sm border-light-subtle px-3 py-2 w-100');
-            $('.dataTables_length select').addClass('form-select shadow-sm border-light-subtle');
+<script>
+    $(document).ready(function() {
+        $('#billsTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            language: {
+                search: "Cari Siswa:",
+                lengthMenu: "Tampilkan _MENU_ data",
+                zeroRecords: "Data siswa tidak ditemukan",
+                emptyTable: "Belum ada data siswa terdaftar",
+                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                infoEmpty: "Tidak ada data tersedia",
+                paginate: {
+                    previous: '<i class="mdi mdi-chevron-left"></i>',
+                    next: '<i class="mdi mdi-chevron-right"></i>'
+                }
+            }
         });
-    </script>
+    });
+</script>
 @endpush

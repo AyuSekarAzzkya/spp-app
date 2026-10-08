@@ -5,7 +5,12 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>SPP</title>
+    <title>E-SPP SYSTEM - Portal Administrasi</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- plugins:css -->
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/vendors/ti-icons/css/themify-icons.css">
@@ -17,8 +22,6 @@
     <link rel="stylesheet"
         href="{{ asset('template/dist') }}/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
     <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <!-- endinject -->
     <!-- Layout styles -->
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/css/style.css">
     <!-- End layout styles -->
@@ -34,11 +37,12 @@
     {{-- DataTables Responsive CSS --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
 
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    {{-- Modern Admin Theme (Navy & Orange Brand) --}}
+    <link rel="stylesheet" href="{{ asset('css/admin-theme.css') }}">
     @stack('css')
 </head>
 
-<body>
+<body class="admin-theme">
     <div class="container-scroller">
         <!-- partial:partials/_navbar.html -->
         @include('layouts.navbar')
@@ -56,7 +60,14 @@
             <!-- main-panel ends -->
         </div>
         <!-- page-body-wrapper ends -->
+
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     </div>
+
+    <!-- AI SPP Agent Modal & Floating Trigger -->
+    @include('components.ai-agent-modal')
+
     <!-- plugins:js -->
     <script src="{{ asset('template/dist') }}/assets/vendors/js/vendor.bundle.base.js"></script>
     <!-- endinject -->
@@ -83,6 +94,54 @@
     {{-- DataTables Responsive JS --}}
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+
+    {{-- Mobile Sidebar Drawer Backdrop Script --}}
+    <script>
+        (function ($) {
+            'use strict';
+            $(function () {
+                var $sidebar = $('.sidebar-offcanvas');
+                var $backdrop = $('#sidebarBackdrop');
+
+                $('[data-toggle="offcanvas"]').on('click', function () {
+                    // Check if sidebar has active class after off-canvas.js toggles it
+                    setTimeout(function () {
+                        if ($sidebar.hasClass('active')) {
+                            $backdrop.addClass('show');
+                        } else {
+                            $backdrop.removeClass('show');
+                        }
+                    }, 10);
+                });
+
+                $backdrop.on('click', function () {
+                    $sidebar.removeClass('active');
+                    $backdrop.removeClass('show');
+                });
+
+                $('#sidebarMobileCloseBtn').on('click', function () {
+                    $sidebar.removeClass('active');
+                    $backdrop.removeClass('show');
+                });
+
+                // Auto close mobile drawer on link navigation
+                $('.sidebar-offcanvas .nav-link').on('click', function () {
+                    if ($(window).width() < 992 && !$(this).attr('data-bs-toggle')) {
+                        $sidebar.removeClass('active');
+                        $backdrop.removeClass('show');
+                    }
+                });
+
+                // Reset on window resize to desktop
+                $(window).on('resize', function () {
+                    if ($(window).width() >= 992) {
+                        $backdrop.removeClass('show');
+                        $sidebar.removeClass('active');
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
     @stack('scripts')
 </body>
 

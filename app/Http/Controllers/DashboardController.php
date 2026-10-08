@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
 use App\Models\Bill;
 use App\Models\Payment;
+use App\Models\PaymentDetail;
 use App\Models\Student;
+use App\Models\StudentClass;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +23,8 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'Profil siswa tidak ditemukan.');
         }
 
+        $student->loadMissing(['class', 'academicYear']);
+
         $unpaidBills = Bill::with('sppRate')
             ->where('student_id', $student->id)
             ->where('status', 'unpaid')
@@ -27,8 +32,17 @@ class DashboardController extends Controller
             ->orderBy('month')
             ->get();
 
-        $totalUnpaid = $unpaidBills->sum(fn($bill) => $bill->sppRate->amount);
+        $totalUnpaid = (int) $unpaidBills->sum(fn($bill) => $bill->sppRate->amount ?? 0);
         $unpaidCount = $unpaidBills->count();
+
+        $paidBillsCount = Bill::where('student_id', $student->id)
+            ->where('status', 'paid')
+            ->count();
+
+        $totalPaidAmount = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
+            ->where('payments.student_id', $student->id)
+            ->where('payments.status', 'approved')
+            ->sum('payment_details.amount');
 
         $currentMonth = now()->month;
         $currentYear = now()->year;
@@ -39,28 +53,36 @@ class DashboardController extends Controller
             ->where('status', 'unpaid')
             ->exists();
 
-        $latestPayment = Payment::where('student_id', $student->id)
+        $latestPayment = Payment::with(['details.bill', 'latestProof'])
+            ->where('student_id', $student->id)
             ->latest()
             ->first();
+
+        $pendingPaymentsCount = Payment::where('student_id', $student->id)
+            ->where('status', 'pending')
+            ->count();
 
         $rejectedPayments = Payment::where('student_id', $student->id)
             ->where('status', 'rejected')
             ->latest()
             ->get();
 
-        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
         return view('student.dashboard.index', compact(
+            'student',
             'unpaidBills',
             'totalUnpaid',
             'unpaidCount',
+            'paidBillsCount',
+            'totalPaidAmount',
             'isPaidThisMonth',
             'latestPayment',
+            'pendingPaymentsCount',
             'rejectedPayments',
             'activeYear'
         ));
     }
-
 
     public function petugas()
     {
@@ -73,19 +95,31 @@ class DashboardController extends Controller
             ->distinct('student_id')
             ->count('student_id');
 
-        $todayTransactionsCount = Payment::whereDate('created_at', $today)
-            ->whereIn('status', ['approved', 'pending'])
-            ->count();
+        $todayTransactionsCount = Payment::whereDate('created_at', $today)->count();
 
-        $todayRevenue = Payment::whereDate('created_at', $today)
-            ->where('status', 'approved')
-            ->with('proofs')
-            ->get()
-            ->sum(function ($payment) {
-                return $payment->proofs->sum('amount');
-            });
+        // Hitung pemasukan riil hari ini dari transaksi approved
+        $todayRevenue = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
+            ->where('payments.status', 'approved')
+            ->whereDate('payments.verified_at', $today)
+            ->sum('payment_details.amount');
 
-        $recentActivities = Payment::with(['student.class', 'proofs'])
+        // Hitung pemasukan bulan ini
+        $thisMonthRevenue = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
+            ->where('payments.status', 'approved')
+            ->whereMonth('payments.verified_at', now()->month)
+            ->whereYear('payments.verified_at', now()->year)
+            ->sum('payment_details.amount');
+
+        $totalApproved = Payment::where('status', 'approved')->count();
+        $totalRejected = Payment::where('status', 'rejected')->count();
+
+        $pendingPayments = Payment::with(['student.class', 'details.bill', 'latestProof'])
+            ->where('status', 'pending')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $recentActivities = Payment::with(['student.class', 'details.bill', 'latestProof'])
             ->latest()
             ->limit(10)
             ->get();
@@ -95,68 +129,86 @@ class DashboardController extends Controller
             'arrearsCount',
             'todayTransactionsCount',
             'todayRevenue',
+            'thisMonthRevenue',
+            'totalApproved',
+            'totalRejected',
+            'pendingPayments',
             'recentActivities'
         ));
     }
 
-
     public function admin()
     {
-        $totalRevenueMonth = Payment::join('payment_proofs', 'payments.id', '=', 'payment_proofs.payment_id')
+        // Total Pemasukan Bulan Ini (Riil dari transaksi approved)
+        $totalRevenueMonth = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
             ->where('payments.status', 'approved')
-            ->whereMonth('payment_proofs.created_at', now()->month)
-            ->whereYear('payment_proofs.created_at', now()->year)
-            ->sum('payment_proofs.amount');
+            ->whereMonth('payments.verified_at', now()->month)
+            ->whereYear('payments.verified_at', now()->year)
+            ->sum('payment_details.amount');
 
-        $totalArrears = Bill::join('spp_rates', 'bills.spp_rate_id', '=', 'spp_rates.id')
+        // Total Seluruh Pemasukan Sepanjang Waktu
+        $totalRevenueAll = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
+            ->where('payments.status', 'approved')
+            ->sum('payment_details.amount');
+
+        // Total Tunggakan SPP Saat Ini
+        $totalArrears = (int) Bill::join('spp_rates', 'bills.spp_rate_id', '=', 'spp_rates.id')
             ->where('bills.status', 'unpaid')
             ->sum('spp_rates.amount');
 
         $totalStudents = Student::count();
+        $activeStudents = Student::where('status', 'active')->count();
+        $totalClasses = StudentClass::count();
+
+        $totalBills = Bill::count();
+        $paidBillsCount = Bill::where('status', 'paid')->count();
+        $unpaidBillsCount = Bill::where('status', 'unpaid')->count();
+
         $pendingApprovals = Payment::where('status', 'pending')->count();
+        $rejectedPaymentsCount = Payment::where('status', 'rejected')->count();
+        $totalPayments = Payment::count();
 
-        $rawMonthlyRevenue = Payment::join('payment_proofs', 'payments.id', '=', 'payment_proofs.payment_id')
-            ->where('payments.status', 'approved')
-            ->whereBetween('payment_proofs.created_at', [
-                now()->subMonths(5)->startOfMonth(),
-                now()->endOfMonth()
-            ])
-            ->selectRaw('
-                MONTH(payment_proofs.created_at) as month,
-                YEAR(payment_proofs.created_at) as year,
-                SUM(payment_proofs.amount) as total
-            ')
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get();
-
-        $monthlyRevenue = collect(range(0, 5))->map(function ($i) use ($rawMonthlyRevenue) {
+        // 6 Bulan Tren Pemasukan Riil
+        $monthlyRevenue = collect(range(0, 5))->map(function ($i) {
             $date = now()->subMonths(5 - $i);
 
-            $data = $rawMonthlyRevenue
-                ->where('month', $date->month)
-                ->where('year', $date->year)
-                ->first();
+            $total = (int) PaymentDetail::join('payments', 'payment_details.payment_id', '=', 'payments.id')
+                ->where('payments.status', 'approved')
+                ->whereMonth('payments.verified_at', $date->month)
+                ->whereYear('payments.verified_at', $date->year)
+                ->sum('payment_details.amount');
 
             return [
-                'label' => $date->translatedFormat('M'),
-                'total' => $data->total ?? 0
+                'label' => $date->translatedFormat('M Y'),
+                'total' => $total,
             ];
         });
 
-        $classDistribution = Student::select('class_id', DB::raw('count(*) as total'))
-            ->with('class')
-            ->groupBy('class_id')
+        // Distribusi Siswa per Kelas
+        $classDistribution = StudentClass::withCount('students')->get();
+
+        // Transaksi Pembayaran Terbaru
+        $recentPayments = Payment::with(['student.class', 'details.bill', 'latestProof'])
+            ->latest()
+            ->take(6)
             ->get();
 
         return view('admin.dashboard.index', compact(
             'totalRevenueMonth',
+            'totalRevenueAll',
             'totalArrears',
             'totalStudents',
+            'activeStudents',
+            'totalClasses',
+            'totalBills',
+            'paidBillsCount',
+            'unpaidBillsCount',
             'pendingApprovals',
+            'rejectedPaymentsCount',
+            'totalPayments',
             'monthlyRevenue',
-            'classDistribution'
+            'classDistribution',
+            'recentPayments'
         ));
     }
 }

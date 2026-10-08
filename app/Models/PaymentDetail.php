@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentDetail extends Model
 {
-     protected $fillable = [
+    protected $fillable = [
         'payment_id',
         'bill_id',
-        'amount'
+        'amount',
+    ];
+
+    protected $casts = [
+        'amount' => 'integer',
     ];
 
     public function payment()
@@ -21,7 +25,4 @@ class PaymentDetail extends Model
     {
         return $this->belongsTo(Bill::class);
     }
-
-    
 }
-

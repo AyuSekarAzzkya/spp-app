@@ -1,139 +1,177 @@
 @extends('template')
 
 @section('content')
-    <div class="container mt-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="fw-bold mb-0">Tagihan SPP Siswa</h3>
+<div class="page-inner">
+    {{-- Header Section --}}
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ route('billing.students') }}" class="text-decoration-none" style="color: var(--orange-brand);">Tagihan Siswa</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $student->name }}</li>
+                </ol>
+            </nav>
+            <h2 class="page-header-title mb-1">Lembar Tagihan SPP Siswa</h2>
+            <p class="page-header-subtitle mb-0">Rincian status pembayaran seluruh bulan dalam tahun ajaran berjalan.</p>
         </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body d-flex justify-content-between align-items-start">
-
-                <div>
-                    <h5 class="fw-bold mb-2">{{ $student->name }}</h5>
-
-                    <p class="mb-1">
-                        NIS:
-                        <b>{{ $student->nis }}</b>
-                    </p>
-
-                    <p class="mb-1">
-                        Kelas:
-                        <b>{{ $student->class->name ?? '-' }}</b>
-                    </p>
-
-                    <p class="mb-0">
-                        Tahun Ajaran Aktif:
-                        <b>{{ $activeYear->year }}</b>
-                    </p>
-
-
-                    <span class="badge bg-primary p-2 px-3 fs-6 mt-2">
-                        SPP: Rp{{ number_format($sppRate->amount) }}
-                    </span>
-                </div>
-
-            </div>
-
-
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            <a href="{{ route('billing.students') }}" class="btn btn-secondary d-flex align-items-center">
+                <i class="mdi mdi-arrow-left me-1"></i> Kembali ke Daftar Siswa
+            </a>
+            <a href="{{ route('students.detail', $student->id) }}" class="btn btn-outline-secondary d-flex align-items-center">
+                <i class="mdi mdi-account-eye-outline me-1"></i> Profil Siswa
+            </a>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-white fw-bold">
-            Riwayat Tagihan SPP
+    {{-- Alert Messages --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="mdi mdi-check-circle me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="mdi mdi-alert-circle me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-        <div class="card-body">
+    {{-- Student Summary Card --}}
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-3 shadow-sm" style="width: 56px; height: 56px; background: var(--navy-primary); font-size: 1.4rem;">
+                        {{ strtoupper(substr($student->name, 0, 1)) }}
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">{{ $student->name }}</h4>
+                        <div class="text-muted small">
+                            NIS: <strong>{{ $student->nis }}</strong> • Kelas: <strong>{{ $student->class->name ?? '-' }}</strong> • Tahun Ajaran: <strong>{{ $activeYear->year ?? '-' }}</strong>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="p-2 px-3 bg-light rounded-3 border text-center">
+                        <small class="text-muted d-block small">Tarif SPP Bulanan</small>
+                        <span class="fw-bold text-navy">Rp {{ number_format($sppRate->amount ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="p-2 px-3 bg-light rounded-3 border text-center">
+                        <small class="text-muted d-block small">Sudah Lunas</small>
+                        <span class="fw-bold text-success">{{ $bills->where('status', 'paid')->count() }} Bulan</span>
+                    </div>
+                    <div class="p-2 px-3 bg-light rounded-3 border text-center">
+                        <small class="text-muted d-block small">Belum Lunas</small>
+                        <span class="fw-bold text-danger">{{ $bills->where('status', 'unpaid')->count() }} Bulan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Bills Table Card --}}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="d-flex align-items-center fw-bold">
+                <i class="mdi mdi-calendar-month-outline me-2" style="color: var(--orange-brand); font-size: 1.2rem;"></i>
+                Lembar Tagihan SPP Bulanan
+            </span>
+            <span class="badge badge-secondary">{{ $bills->count() }} Tagihan Terdaftar</span>
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="bills-table">
-                    <thead class="bg-light">
-                        <tr class="text-secondary small text-uppercase fw-bold">
-                            <th class="ps-4">No</th>
-                            <th>Bulan</th>
+                <table class="table table-hover align-middle mb-0 w-100" id="datatable">
+                    <thead>
+                        <tr>
+                            <th class="ps-3" style="width: 50px;">No</th>
+                            <th>Bulan & Tahun</th>
                             <th>Jatuh Tempo</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center pe-4">Aksi</th>
+                            <th>Nominal Tarif</th>
+                            <th class="text-center" style="width: 140px;">Status Tagihan</th>
+                            <th class="text-center" style="width: 140px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($bills as $bill)
+                        @forelse ($bills as $idx => $bill)
                             <tr>
-                                <td class="ps-4 text-muted">{{ $loop->iteration }}</td>
-                                <td class="fw-bold text-dark">
-                                    {{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }}
+                                <td class="text-muted small ps-3">{{ $idx + 1 }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        {{ \Carbon\Carbon::create()->month($bill->month)->translatedFormat('F') }} {{ $bill->year }}
+                                    </div>
+                                    <small class="text-muted">SPP Wajib</small>
                                 </td>
                                 <td>
-                                    <span class="text-muted small">
-                                        <i class="far fa-calendar-alt me-1"></i>
-                                        {{ \Carbon\Carbon::parse($bill->due_date)->format('d M Y') }}
+                                    @php
+                                        $dueDate = \Carbon\Carbon::parse($bill->due_date);
+                                        $isOverdue = $bill->status === 'unpaid' && $dueDate->isPast();
+                                    @endphp
+                                    <span class="{{ $isOverdue ? 'text-danger fw-semibold' : 'text-dark' }} small">
+                                        {{ $dueDate->translatedFormat('d M Y') }}
+                                    </span>
+                                    @if($isOverdue)
+                                        <div class="small text-danger"><i class="mdi mdi-alert-circle"></i> Terlewat tempo</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">
+                                        Rp {{ number_format($bill->sppRate->amount ?? 0, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     @if ($bill->status === 'paid')
-                                        <span
-                                            class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-check-circle me-1"></i> Lunas
+                                        <span class="badge badge-lunas">
+                                            <i class="mdi mdi-check"></i> Lunas
                                         </span>
                                     @else
-                                        <span
-                                            class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-clock me-1"></i> Belum Lunas
+                                        <span class="badge badge-unpaid">
+                                            <i class="mdi mdi-clock-outline"></i> Belum Lunas
                                         </span>
                                     @endif
                                 </td>
-                                <td class="text-center pe-4">
-                                    <a href="{{ route('admin.bills.show', $bill->id) }}"
-                                        class="btn btn-sm btn-primary px-3 shadow-sm fw-bold rounded-pill"
-                                        style="font-size: 11px;">
-                                        <i class="fas fa-search me-1"></i> LIHAT DETAIL
-                                    </a>
+                                <td class="text-center">
+                                    @if ($bill->status === 'paid')
+                                        <a href="{{ route('admin.bills.show', $bill->id) }}" class="btn btn-sm btn-outline-secondary text-nowrap">
+                                            <i class="mdi mdi-receipt me-1"></i> Rincian Bayar
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">Menunggu Pembayaran</span>
+                                    @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            {{-- DataTables menangani tampilan kosong secara otomatis lewat language setting --}}
+                        @endforelse
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
-
-    </div>
+</div>
 @endsection
+
 @push('scripts')
-    <script>
-        $(document).ready(function() {
-            $('#bills-table').DataTable({
-                // Mencegah error 'Unknown parameter' dengan mendefinisikan kolom secara eksplisit
-                "columnDefs": [{
-                        "orderable": false,
-                        "targets": [0, 3, 4]
-                    } // Matikan sorting di kolom No, Status, dan Aksi
-                ],
-                pageLength: 10, // Karena SPP biasanya 12 bulan
-                responsive: true,
-                language: {
-                    search: "",
-                    searchPlaceholder: "Cari tagihan...",
-                    lengthMenu: "_MENU_ siswa per halaman",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ tagihan",
-                    paginate: {
-                        previous: '<i class="fas fa-chevron-left"></i>',
-                        next: '<i class="fas fa-chevron-right"></i>'
-                    }
-                },
-                drawCallback: function() {
-                    // Styling agar senada dengan tabel sebelumnya
-                    $('.dataTables_filter input').addClass(
-                        'form-control form-control-sm border-0 bg-light shadow-none px-3 rounded-pill'
-                    ).css('width', '200px');
-                    $('.dataTables_length select').addClass(
-                        'form-select form-select-sm border-0 bg-light shadow-none rounded-3');
-                    $('.pagination').addClass('pagination-sm mt-3');
+<script>
+    $(document).ready(function() {
+        $('#datatable').DataTable({
+            responsive: true,
+            pageLength: 12,
+            language: {
+                search: "Cari Tagihan:",
+                lengthMenu: "Tampilkan _MENU_ data",
+                zeroRecords: "Data tagihan tidak ditemukan",
+                emptyTable: "Belum ada lembar tagihan untuk siswa ini",
+                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                infoEmpty: "Tidak ada data tagihan",
+                paginate: {
+                    previous: '<i class="mdi mdi-chevron-left"></i>',
+                    next: '<i class="mdi mdi-chevron-right"></i>'
                 }
-            });
+            }
         });
-    </script>
+    });
+</script>
 @endpush

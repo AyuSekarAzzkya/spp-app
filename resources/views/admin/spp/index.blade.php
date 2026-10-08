@@ -85,11 +85,13 @@
     {{-- Modal Add --}}
     <div class="modal fade" id="modalAdd" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-white">
+            <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Tarif SPP</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title d-flex align-items-center">
+                        <i class="mdi mdi-cash-plus text-white me-2 fs-5"></i> Tambah Tarif SPP
+                    </h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form action="{{ route('spp.store') }}" method="POST">
@@ -97,9 +99,9 @@
                     <div class="modal-body">
 
                         <div class="mb-3">
-                            <label>Tahun Ajaran</label>
-                            <select class="form-control" name="academic_year_id" required>
-                                <option value="">-- Pilih --</option>
+                            <label class="form-label small fw-bold text-dark">Tahun Ajaran</label>
+                            <select class="form-select" name="academic_year_id" required>
+                                <option value="">-- Pilih Tahun Ajaran --</option>
                                 @foreach ($years as $year)
                                     <option value="{{ $year->id }}">{{ $year->year }}</option>
                                 @endforeach
@@ -107,19 +109,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label>Nominal SPP</label>
-                            <input type="number" class="form-control" name="amount" required>
+                            <label class="form-label small fw-bold text-dark">Nominal SPP (Rp)</label>
+                            <input type="number" class="form-control" name="amount" placeholder="Contoh: 250000" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="description" class="form-control" rows="3"></textarea>
+                            <label class="form-label small fw-bold text-dark">Deskripsi (Opsional)</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Keterangan tarif SPP..."></textarea>
                         </div>
 
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary d-flex align-items-center">
+                            <i class="mdi mdi-check-circle me-1"></i> Simpan Tarif
+                        </button>
                     </div>
                 </form>
 
@@ -130,11 +135,13 @@
     {{-- Modal Edit --}}
     <div class="modal fade" id="modalEdit" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-white">
+            <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Tarif SPP</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title d-flex align-items-center">
+                        <i class="mdi mdi-cash-edit text-white me-2 fs-5"></i> Edit Tarif SPP
+                    </h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form id="formEdit" method="POST">
@@ -143,8 +150,8 @@
                     <div class="modal-body">
 
                         <div class="mb-3">
-                            <label class="form-label">Tahun Ajaran</label>
-                            <select name="academic_year_id" id="editYear" class="form-control" required>
+                            <label class="form-label small fw-bold text-dark">Tahun Ajaran</label>
+                            <select name="academic_year_id" id="editYear" class="form-select" required>
                                 @foreach ($years as $y)
                                     <option value="{{ $y->id }}">
                                         {{ $y->year }} ({{ $y->semester == 1 ? 'Ganjil' : 'Genap' }})
@@ -154,19 +161,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Nominal SPP</label>
+                            <label class="form-label small fw-bold text-dark">Nominal SPP (Rp)</label>
                             <input type="number" name="amount" id="editAmount" class="form-control" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="description" id="editDesc" class="form-control"></textarea>
+                            <label class="form-label small fw-bold text-dark">Deskripsi (Opsional)</label>
+                            <textarea name="description" id="editDesc" class="form-control" rows="3"></textarea>
                         </div>
 
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary d-flex align-items-center">
+                            <i class="mdi mdi-content-save me-1"></i> Perbarui Tarif
+                        </button>
                     </div>
 
                 </form>

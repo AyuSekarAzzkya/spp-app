@@ -3,78 +3,82 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\PaymentProof;
 use App\Models\Bill;
+use App\Services\PaymentProofService;
+use App\Services\PaymentVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $payments = Payment::with('student', 'proofs')
-            ->latest()
-            ->get();
+        $status = $request->query('status');
 
-        return view('admin.payment.index', compact('payments'));
+        $query = Payment::with(['student.class', 'details.bill', 'latestProof'])
+            ->latest();
+
+        if ($status && in_array($status, ['pending', 'approved', 'rejected'])) {
+            $query->where('status', $status);
+        }
+
+        $payments = $query->get();
+
+        $counts = [
+            'all'      => Payment::count(),
+            'pending'  => Payment::where('status', 'pending')->count(),
+            'approved' => Payment::where('status', 'approved')->count(),
+            'rejected' => Payment::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.payment.index', compact('payments', 'counts', 'status'));
     }
 
     public function adminShow($id)
     {
         $payment = Payment::with([
-            'student',
+            'student.class',
+            'student.academicYear',
             'details.bill.sppRate',
             'proofs',
+            'verifier',
         ])->findOrFail($id);
 
         return view('admin.payment.show', compact('payment'));
     }
 
-    public function approve($id)
+    public function approve(PaymentVerificationService $service, $id)
     {
-        DB::transaction(function () use ($id) {
+        $payment = Payment::findOrFail($id);
 
-            $payment = Payment::with(['details.bill', 'proofs'])
-                ->findOrFail($id);
-
-            $totalTagihan = $payment->details->sum('amount');
-            $totalBayar   = $payment->proofs->sum('amount');
-
-            if ($totalBayar < $totalTagihan) {
-                abort(403, 'Nominal pembayaran belum mencukupi.');
-            }
-
-            foreach ($payment->details as $detail) {
-                $detail->bill->update([
-                    'status'  => 'paid',
-                    'paid_at' => now(),
-                ]);
-            }
-
-            $payment->update([
-                'status'      => 'approved',
-                'verified_by' => Auth::id(),
-                'verified_at' => now(),
-            ]);
-        });
-
-        return back()->with('success', 'Pembayaran berhasil disetujui.');
+        try {
+            $service->approvePayment($payment, Auth::user());
+            return back()->with('success', 'Pembayaran berhasil disetujui (Lunas). Seluruh tagihan terkait telah diperbarui.');
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem saat memproses persetujuan.');
+        }
     }
 
-    public function reject(Request $request, $id)
+    public function reject(Request $request, PaymentVerificationService $service, $id)
     {
         $request->validate([
-            'note' => 'required|string',
+            'note' => 'required|string|max:500',
         ]);
 
-        Payment::findOrFail($id)->update([
-            'status'      => 'rejected',
-            'note'        => $request->note,
-            'verified_by' => Auth::id(),
-            'verified_at' => now(),
-        ]);
+        $payment = Payment::findOrFail($id);
 
-        return back()->with('success', 'Pembayaran ditolak.');
+        try {
+            $service->rejectPayment($payment, Auth::user(), $request->note);
+            return back()->with('success', 'Pembayaran telah ditolak. Alasan penolakan berhasil dicatat dan siswa dapat mengunggah bukti perbaikan.');
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem saat memproses penolakan.');
+        }
     }
 
     public function create()
@@ -192,5 +196,13 @@ class PaymentController extends Controller
 
         return redirect()->route('student.payments.index', $paymentId)
             ->with('success', 'Bukti baru berhasil diunggah dan status kembali menjadi Pending.');
+    }
+
+    /**
+     * Layani tampilan berkas bukti transfer dengan otorisasi berbasis peran (Admin, Petugas, Pemilik).
+     */
+    public function showProof(PaymentProof $proof, PaymentProofService $service)
+    {
+        return $service->getSecureProofResponse($proof, Auth::user());
     }
 }

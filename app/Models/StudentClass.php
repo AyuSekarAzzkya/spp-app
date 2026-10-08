@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StudentClass extends Model
-{   
+{
     use SoftDeletes;
+
     protected $table = 'classes';
 
     protected $fillable = [
@@ -19,5 +20,10 @@ class StudentClass extends Model
     public function students()
     {
         return $this->hasMany(Student::class, 'class_id');
+    }
+
+    public function activeStudents()
+    {
+        return $this->hasMany(Student::class, 'class_id')->where('status', 'active');
     }
 }

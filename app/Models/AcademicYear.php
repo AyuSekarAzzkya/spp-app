@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AcademicYear extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = [
         'year',
-        'semester',
         'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function students()
@@ -24,5 +27,14 @@ class AcademicYear extends Model
     {
         return $this->hasMany(SppRate::class);
     }
-}
 
+    public function sppRate()
+    {
+        return $this->hasOne(SppRate::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+}

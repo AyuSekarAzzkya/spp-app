@@ -67,32 +67,23 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $.fn.dataTable.ext.errMode = 'none';
-
         $('#datatable').DataTable({
             responsive: true,
             pageLength: 10,
-            lengthChange: false,
             columnDefs: [
                 { orderable: false, targets: 3 }
             ],
             language: {
-                search: "",
-                searchPlaceholder: "Cari riwayat...",
-                zeroRecords: `
-                    <div class="py-5 text-center">
-                        <i class="bi bi-inbox fs-1 d-block text-muted mb-2"></i>
-                        <span class="text-muted small">Belum ada riwayat pembayaran yang ditemukan.</span>
-                    </div>`,
-                info: "Menampilkan _TOTAL_ data",
+                search: "Cari Riwayat:",
+                lengthMenu: "Tampilkan _MENU_ data",
+                zeroRecords: "Belum ada riwayat pembayaran yang ditemukan.",
+                emptyTable: "Belum ada riwayat pembayaran yang tercatat.",
+                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                infoEmpty: "Tidak ada data tersedia",
                 paginate: {
-                    next: "<i class='bi bi-arrow-right'></i>",
-                    previous: "<i class='bi bi-arrow-left'></i>"
+                    next: "<i class='mdi mdi-chevron-right'></i>",
+                    previous: "<i class='mdi mdi-chevron-left'></i>"
                 }
-            },
-            initComplete: function() {
-                $('.dataTables_filter input').addClass('form-control form-control-sm border-0 bg-light rounded-pill px-3 shadow-none');
-                $('.dataTables_filter').addClass('p-3 border-bottom');
             }
         });
     });

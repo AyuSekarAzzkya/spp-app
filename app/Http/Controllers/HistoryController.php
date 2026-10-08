@@ -29,11 +29,19 @@ class HistoryController extends Controller
     }
     public function show($id)
     {
+        $user = FacadesAuth::user();
         $payment = Payment::with([
             'student',
             'details.bill.sppRate',
             'proofs',
         ])->findOrFail($id);
+
+        if ($user && $user->role === 'siswa') {
+            $student = $user->student;
+            if (!$student || $payment->student_id !== $student->id) {
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat data pembayaran ini.');
+            }
+        }
 
         return view('history.show', compact('payment'));
     }

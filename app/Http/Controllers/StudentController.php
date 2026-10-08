@@ -32,50 +32,24 @@ class StudentController extends Controller
             ->addColumn('class_name', fn($row) => $row->class->name ?? '-')
             ->addColumn('year_name', fn($row) => $row->academicYear->year ?? '-')
             ->addColumn('status_badge', function ($row) {
-                $color = $row->status == 'active' ? 'success' : 'secondary';
-                // Menggunakan bg-opacity-10 dan border-opacity-25 (Bootstrap 5)
-                return '<span class="badge bg-' . $color . ' bg-opacity-10 text-' . $color . ' border border-' . $color . ' border-opacity-25 px-3 py-2 rounded-pill">'
-                    . ucfirst($row->status) .
-                    '</span>';
+                if ($row->status == 'active') {
+                    return '<span class="badge badge-lunas"><i class="mdi mdi-check-circle-outline"></i> Aktif</span>';
+                }
+                return '<span class="badge badge-secondary"><i class="mdi mdi-close-circle-outline"></i> Nonaktif</span>';
             })
             ->addColumn('action', function ($row) {
                 return '
-                    <div class="text-center">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-light border dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Aksi
-                            </button>
-
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center"
-                                        href="' . route('students.detail', $row->id) . '">
-                                        <i class="fas fa-eye text-info me-2"></i> Detail
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center"
-                                        href="' . route('students.edit', $row->id) . '">
-                                        <i class="fas fa-edit text-warning me-2"></i> Edit
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <button type="button"
-                                        class="dropdown-item d-flex align-items-center text-danger btn-delete"
-                                        data-id="' . $row->id . '">
-                                        <i class="fas fa-trash-alt me-2"></i> Hapus
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <form id="deleteForm' . $row->id . '"
-                            action="' . route('students.destroy', $row->id) . '"
-                            method="POST" class="d-none">
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <a href="' . route('students.detail', $row->id) . '" class="btn btn-sm btn-outline-secondary" title="Detail Siswa">
+                            <i class="mdi mdi-eye-outline"></i>
+                        </a>
+                        <a href="' . route('students.edit', $row->id) . '" class="btn btn-sm btn-secondary" title="Edit Data">
+                            <i class="mdi mdi-pencil-outline"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="' . $row->id . '" title="Hapus Siswa">
+                            <i class="mdi mdi-trash-can-outline"></i>
+                        </button>
+                        <form id="deleteForm' . $row->id . '" action="' . route('students.destroy', $row->id) . '" method="POST" class="d-none">
                             ' . csrf_field() . method_field('DELETE') . '
                         </form>
                     </div>
@@ -156,11 +130,21 @@ class StudentController extends Controller
 
     public function destroy($id)
     {
-        $student = Student::findOrFail($id)->delete();
-        $student->bills()->delete();
+        $student = Student::findOrFail($id);
 
+        // Jika siswa memiliki riwayat transaksi approved/pending, lakukan soft delete tanpa merusak rekaman keuangan
+        $hasPayments = $student->payments()->whereIn('status', ['approved', 'pending'])->exists();
+        if ($hasPayments) {
+            $student->update(['status' => 'inactive']);
+            $student->delete();
+            return redirect()->route('students.index')->with('success', 'Siswa memiliki riwayat pembayaran. Data berhasil diarsipkan (soft delete) dan dinonaktifkan demi menjaga integritas data keuangan.');
+        }
+
+        // Jika hanya memiliki tagihan belum lunas tanpa pembayaran, bersihkan tagihan unpaid
+        $student->bills()->where('status', 'unpaid')->delete();
         $student->delete();
-        return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus!');
+
+        return redirect()->route('students.index')->with('success', 'Data siswa berhasil dihapus!');
     }
 
     public function import(Request $request)
@@ -227,7 +211,7 @@ class StudentController extends Controller
                     'nisn' => $nisn,
                     'gender' => $gender,
                     'phone' => $phone,
-                    'address'  > $address,
+                    'address' => $address,
                     'class_id' => $class->id,
                     'academic_year_id' => $year->id,
                 ]

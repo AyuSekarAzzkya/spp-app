@@ -79,7 +79,7 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0 w-100" id="studentPaymentsTable">
                             <thead class="bg-light text-secondary small text-uppercase">
                                 <tr>
                                     <th class="ps-4">Tanggal</th>
@@ -142,6 +142,27 @@
 
 @push('scripts')
     <script>
+        $(document).ready(function() {
+            if ($('#studentPaymentsTable').length) {
+                $('#studentPaymentsTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    language: {
+                        search: "Cari Pembayaran:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        zeroRecords: "Data pembayaran tidak ditemukan",
+                        emptyTable: "Belum ada riwayat pembayaran",
+                        info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        paginate: {
+                            previous: '<i class="mdi mdi-chevron-left"></i>',
+                            next: '<i class="mdi mdi-chevron-right"></i>'
+                        }
+                    }
+                });
+            }
+        });
+
         @if (session('success'))
             Swal.fire({
                 icon: 'success',

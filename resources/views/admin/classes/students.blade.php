@@ -49,13 +49,8 @@
                                         <td>{{ $item->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
                                         <td>{{ $item->phone ?? '-' }}</td>
                                     </tr>
-
                                 @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            Tidak ada siswa dalam kelas ini.
-                                        </td>
-                                    </tr>
+                                    {{-- DataTables akan menangani tampilan kosong secara otomatis lewat language setting --}}
                                 @endforelse
 
                             </tbody>
@@ -71,9 +66,23 @@
 
 @push('scripts')
     <script>
-        $('#datatable').DataTable({
-            pageLength: 10,
-            ordering: true,
+        $(document).ready(function() {
+            $('#datatable').DataTable({
+                pageLength: 10,
+                ordering: true,
+                language: {
+                    search: "Cari Siswa:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Tidak ada siswa yang sesuai pencarian",
+                    emptyTable: "Tidak ada data siswa dalam kelas ini",
+                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ siswa",
+                    infoEmpty: "Tidak ada data",
+                    paginate: {
+                        previous: '<i class="mdi mdi-chevron-left"></i>',
+                        next: '<i class="mdi mdi-chevron-right"></i>'
+                    }
+                }
+            });
         });
     </script>
 @endpush

@@ -75,7 +75,7 @@
                                             <div class="small text-muted text-truncate" style="max-width: 200px;">
                                                 {{ $proof->note ?? 'Tanpa catatan' }}</div>
                                         </div>
-                                        <a href="{{ asset('storage/' . $proof->image_path) }}" target="_blank"
+                                        <a href="{{ route('payments.proof.show', $proof->id) }}" target="_blank"
                                             class="btn btn-sm btn-outline-primary rounded-pill">Lihat</a>
                                     </div>
                                 @endforeach
