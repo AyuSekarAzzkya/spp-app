@@ -26,7 +26,11 @@ class BillController extends Controller
             return back()->with('error', 'Tarif SPP untuk tahun ajaran aktif belum diset.');
         }
 
-        $students = Student::with(['class', 'academicYear'])
+        $students = Student::select(['id', 'nis', 'name', 'class_id', 'academic_year_id', 'status'])
+            ->with([
+                'class:id,name',
+                'academicYear:id,year'
+            ])
             ->withCount([
                 'bills as unpaid_bills_count' => fn($q) => $q->where('status', 'unpaid'),
                 'bills as paid_bills_count' => fn($q) => $q->where('status', 'paid'),

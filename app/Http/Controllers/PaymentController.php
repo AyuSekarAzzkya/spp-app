@@ -26,11 +26,18 @@ class PaymentController extends Controller
 
         $payments = $query->get();
 
+        $rawCounts = Payment::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+            SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+        ")->first();
+
         $counts = [
-            'all'      => Payment::count(),
-            'pending'  => Payment::where('status', 'pending')->count(),
-            'approved' => Payment::where('status', 'approved')->count(),
-            'rejected' => Payment::where('status', 'rejected')->count(),
+            'all'      => $rawCounts->total ?? 0,
+            'pending'  => (int) ($rawCounts->pending ?? 0),
+            'approved' => (int) ($rawCounts->approved ?? 0),
+            'rejected' => (int) ($rawCounts->rejected ?? 0),
         ];
 
         return view('admin.payment.index', compact('payments', 'counts', 'status'));

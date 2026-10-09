@@ -15,13 +15,13 @@ class HistoryController extends Controller
             $student = $user->student;
             if (!$student) return abort(404, 'Data Siswa tidak ditemukan');
 
-            $payments = Payment::with(['details.bill', 'proofs'])
+            $payments = Payment::with('proofs')
                 ->where('student_id', $student->id)
-                ->latest()
+                ->latest('payment_date')
                 ->get();
         } else {
-            $payments = Payment::with(['student', 'details.bill', 'proofs'])
-                ->latest()
+            $payments = Payment::with('proofs')
+                ->latest('payment_date')
                 ->get();
         }
 

@@ -11,15 +11,19 @@
         </a>
 
         {{-- Collapsed Mini Brand --}}
-        <a class="navbar-brand brand-logo-mini d-none align-items-center justify-content-center text-decoration-none" href="#" title="E-SPP System">
+        <a class="navbar-brand brand-logo-mini d-flex align-items-center text-decoration-none" href="#" title="E-SPP System">
             <div class="brand-logo-badge">
                 <i class="mdi mdi-shield-check text-white"></i>
             </div>
+            <span class="fw-bold text-dark mb-0 ms-2 d-none d-sm-inline" style="font-size: 0.95rem; letter-spacing: -0.3px;">
+                E-SPP <span style="color: var(--orange-brand);">SYSTEM</span>
+            </span>
         </a>
     </div>
 
     <div class="navbar-menu-wrapper d-flex align-items-center">
-        <button class="navbar-toggler navbar-toggler align-self-center border-0 bg-transparent ms-2"
+        {{-- Desktop-only minimize toggle --}}
+        <button class="navbar-toggler navbar-toggler align-self-center d-none d-lg-flex border-0 bg-transparent ms-2"
             type="button" data-toggle="minimize" title="Perkecil/Perbesar Menu">
             <i class="mdi mdi-menu fs-4" style="color: var(--navy-primary);"></i>
         </button>
@@ -85,10 +89,12 @@
                 </div>
             </li>
 
-            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center border-0 bg-transparent ms-2"
-                type="button" data-toggle="offcanvas" title="Buka Menu Mobile">
-                <span class="mdi mdi-menu fs-4" style="color: var(--navy-primary);"></span>
-            </button>
+            <li class="nav-item d-lg-none ms-2">
+                <button class="navbar-toggler navbar-toggler-right mobile-navbar-toggler align-self-center border-0"
+                    type="button" data-toggle="offcanvas" title="Buka Menu Mobile" id="mobileSidebarToggleBtn">
+                    <span class="mdi mdi-menu fs-4" style="color: var(--navy-primary);"></span>
+                </button>
+            </li>
         </ul>
     </div>
 </nav>

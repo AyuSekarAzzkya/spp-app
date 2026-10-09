@@ -7,6 +7,7 @@ use App\Models\AcademicYear;
 use App\Models\StudentClass;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Yajra\DataTables\DataTables;
@@ -15,14 +16,17 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::with(['class', 'academicYear'])->get();
-        return view('admin.student.index', compact('students'));
+        // View didukung 100% oleh Server-Side DataTables AJAX, tidak perlu query berat di sini
+        return view('admin.student.index');
     }
 
     public function data()
     {
-        // Pastikan nama relasi di 'with' sesuai dengan model (misal: class)
-        $query = Student::with(['class', 'academicYear', 'user']);
+        $query = Student::with([
+            'class:id,name',
+            'academicYear:id,year',
+            'user:id,email'
+        ])->select('students.*');
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -147,88 +151,355 @@ class StudentController extends Controller
         return redirect()->route('students.index')->with('success', 'Data siswa berhasil dihapus!');
     }
 
+    /**
+     * Import data siswa dari berkas Spreadsheet (Excel/CSV)
+     * Dioptimalkan dengan PhpSpreadsheet ReadDataOnly, In-Memory Lookups, Single DB Transaction, dan Idempotent User Linkage.
+     */
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:20480',
+        ], [
+            'file.required' => 'Silakan pilih file spreadsheet yang ingin diimport.',
+            'file.mimes'    => 'Format file harus berupa .xlsx, .xls, atau .csv.',
+            'file.max'      => 'Ukuran file maksimal adalah 20MB.',
         ]);
 
-        $spreadsheet = IOFactory::load($request->file('file'));
-        $sheet = $spreadsheet->getActiveSheet();
+        // Tingkatkan batas eksekusi & memori untuk menangani hingga 50.000 baris dengan aman
+        @ini_set('max_execution_time', '600');
+        @ini_set('memory_limit', '512M');
 
-        $rows = $sheet->toArray(null, true, true, true);
-        $header = array_shift($rows);
+        $file = $request->file('file');
+        $filePath = $file->getRealPath();
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        $mapping = [];
-        foreach ($header as $col => $value) {
-            $key = strtolower(trim($value));
-            $mapping[$key] = $col;
+        // 1. Parsing Berkas: Streaming native fgetcsv untuk CSV/TXT (super hemat RAM & instan), atau PhpSpreadsheet ReadDataOnly untuk Excel
+        $rows = [];
+        if (in_array($extension, ['csv', 'txt'])) {
+            if (($handle = fopen($filePath, 'r')) !== false) {
+                // Deteksi delimiter (, atau ;)
+                $firstLine = fgets($handle);
+                $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+                rewind($handle);
+
+                while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+                    $rows[] = $data;
+                }
+                fclose($handle);
+            }
+        } else {
+            try {
+                $reader = IOFactory::createReaderForFile($filePath);
+                $reader->setReadDataOnly(true);
+                $reader->setReadEmptyCells(false);
+                $spreadsheet = $reader->load($filePath);
+                $sheet = $spreadsheet->getActiveSheet();
+                $rows = $sheet->toArray(null, true, true, false);
+            } catch (\Throwable $e) {
+                return back()->with('error', 'Gagal membaca berkas spreadsheet: ' . $e->getMessage());
+            }
         }
 
-        foreach ($rows as $row) {
-            $name = $row[$mapping['name']] ?? null;
-            $nis = $row[$mapping['nis']] ?? null;
-            $nisn = $row[$mapping['nisn']] ?? null;
-            $gender = $row[$mapping['gender']] ?? null;
-            $phone = $row[$mapping['phone']] ?? null;
-            $address = $row[$mapping['address']] ?? null;
-            $email = $row[$mapping['email']] ?? null;
-            $password = $row[$mapping['password']] ?? null;
+        if (empty($rows)) {
+            return back()->with('error', 'Berkas spreadsheet kosong atau tidak memiliki data.');
+        }
 
-            $className = $row[$mapping['class']] ?? null;
-            $gradeLevel = $row[$mapping['grade level']] ?? null;
-            $major = $row[$mapping['major']] ?? null;
+        $header = array_shift($rows);
+        if (empty($header) || empty($rows)) {
+            return back()->with('error', 'Berkas spreadsheet tidak memiliki baris data.');
+        }
 
-            $yearName = $row[$mapping['academic year']] ?? null;
+        // 2. Petakan kolom secara fleksibel (case-insensitive & multibahasa)
+        $mapping = [];
+        foreach ($header as $col => $value) {
+            if ($value !== null && trim((string)$value) !== '') {
+                $key = strtolower(trim((string)$value));
+                $mapping[$key] = $col;
+            }
+        }
 
-            $class = StudentClass::firstOrCreate(
-                ['name' => $className, 'grade_level' => $gradeLevel, 'major' => $major]
-            );
+        $findCol = function (array $aliases) use ($mapping) {
+            foreach ($aliases as $alias) {
+                if (isset($mapping[$alias])) {
+                    return $mapping[$alias];
+                }
+            }
+            return null;
+        };
 
-            $year = AcademicYear::firstOrCreate(
-                ['year' => $yearName]
-            );
+        $colName         = $findCol(['name', 'nama', 'nama siswa', 'nama lengkap']);
+        $colNis          = $findCol(['nis', 'nomor induk', 'no induk']);
+        $colNisn         = $findCol(['nisn']);
+        $colGender       = $findCol(['gender', 'jenis kelamin', 'jk']);
+        $colPhone        = $findCol(['phone', 'telepon', 'no telp', 'no telepon', 'hp']);
+        $colAddress      = $findCol(['address', 'alamat']);
+        $colEmail        = $findCol(['email']);
+        $colPassword     = $findCol(['password', 'kata sandi']);
+        $colClass        = $findCol(['class', 'kelas', 'nama kelas']);
+        $colGrade        = $findCol(['grade level', 'tingkat', 'tingkat kelas', 'grade']);
+        $colMajor        = $findCol(['major', 'jurusan']);
+        $colYear         = $findCol(['academic year', 'tahun ajaran', 'tahun akademik']);
 
-            if (!$email) {
-                $baseEmail = preg_replace('/[^a-z0-9]/', '', strtolower($name));
-                $email = $baseEmail . '@sekolah.com';
+        if ($colNis === null || $colName === null) {
+            return back()->with('error', 'Format berkas tidak sesuai: Kolom "nis" dan "name" wajib ada pada baris pertama.');
+        }
 
-                $counter = 1;
-                while (User::where('email', $email)->exists()) {
-                    $email = $baseEmail . $counter . '@sekolah.com';
-                    $counter++;
+        // 3. Pre-load in-memory lookups untuk MENGELIMINASI 100% masalah N+1 Database Queries
+        $classes = StudentClass::withTrashed()->get();
+        $classMap = [];
+        foreach ($classes as $c) {
+            $compositeKey = strtolower(trim($c->name)) . '|' . strtolower(trim((string)$c->grade_level)) . '|' . strtolower(trim((string)$c->major));
+            $classMap[$compositeKey] = $c->id;
+            $nameKey = strtolower(trim($c->name));
+            if (!isset($classMap[$nameKey])) {
+                $classMap[$nameKey] = $c->id;
+            }
+        }
+
+        $years = AcademicYear::withTrashed()->get();
+        $yearMap = [];
+        foreach ($years as $y) {
+            $yearMap[strtolower(trim($y->year))] = $y->id;
+        }
+
+        $defaultActiveYear = AcademicYear::where('is_active', true)->first();
+
+        // Ambil seluruh NIS dan email yang sudah ada ke dalam Set O(1)
+        $existingStudents = Student::withTrashed()->get(['id', 'nis', 'user_id', 'deleted_at'])->keyBy('nis');
+        $existingUsers = User::pluck('id', 'email')->toArray();
+
+        // Cek Spatie Role 'siswa' hanya satu kali di awal untuk mencegah exception overhead berulang
+        $siswaRole = null;
+        if (class_exists(\Spatie\Permission\Models\Role::class)) {
+            $siswaRole = \Spatie\Permission\Models\Role::where('name', 'siswa')->first();
+        }
+
+        $importedCount = 0;
+        $updatedCount  = 0;
+        $skippedCount  = 0;
+
+        // 4. Eksekusi seluruh baris dalam satu DATABASE TRANSACTION tunggal dengan Chunked Batch Ingestion (500 baris per batch)
+        DB::transaction(function () use (
+            $rows,
+            $colName, $colNis, $colNisn, $colGender, $colPhone, $colAddress,
+            $colEmail, $colPassword, $colClass, $colGrade, $colMajor, $colYear,
+            &$classMap, &$yearMap, $defaultActiveYear, $siswaRole,
+            &$existingStudents, &$existingUsers,
+            &$importedCount, &$updatedCount, &$skippedCount
+        ) {
+            $now = now();
+            $passwordCache = [];
+            $newUsersBatch = [];
+            $newStudentsMetaBatch = [];
+
+            $flushBatch = function () use (
+                &$newUsersBatch, &$newStudentsMetaBatch, &$existingUsers,
+                &$importedCount, $siswaRole, $now
+            ) {
+                if (empty($newUsersBatch)) {
+                    return;
+                }
+
+                // A. Bulk insert users (1 SQL query)
+                DB::table('users')->insert($newUsersBatch);
+
+                // B. Ambil user_id yang baru saja diinsert berdasarkan email (1 SQL query terindeks)
+                $chunkEmails = array_column($newUsersBatch, 'email');
+                $userMap = DB::table('users')->whereIn('email', $chunkEmails)->pluck('id', 'email')->toArray();
+
+                // C. Siapkan record students dengan user_id yang valid
+                $studentsToInsert = [];
+                $rolesToInsert = [];
+
+                foreach ($newStudentsMetaBatch as $meta) {
+                    $userId = $userMap[$meta['email']] ?? null;
+                    $studentsToInsert[] = [
+                        'nis'              => $meta['nis'],
+                        'nisn'             => $meta['nisn'],
+                        'name'             => $meta['name'],
+                        'phone'            => $meta['phone'],
+                        'gender'           => $meta['gender'],
+                        'address'          => $meta['address'],
+                        'class_id'         => $meta['class_id'],
+                        'academic_year_id' => $meta['academic_year_id'],
+                        'user_id'          => $userId,
+                        'status'           => 'active',
+                        'created_at'       => $now,
+                        'updated_at'       => $now,
+                    ];
+
+                    if ($siswaRole && $userId) {
+                        $rolesToInsert[] = [
+                            'role_id'    => $siswaRole->id,
+                            'model_type' => 'App\\Models\\User',
+                            'model_id'   => $userId,
+                        ];
+                    }
+                }
+
+                // D. Bulk insert students (1 SQL query)
+                if (!empty($studentsToInsert)) {
+                    DB::table('students')->insert($studentsToInsert);
+                }
+
+                // E. Bulk insert roles jika role terdaftar (1 SQL query)
+                if (!empty($rolesToInsert)) {
+                    DB::table('model_has_roles')->insertOrIgnore($rolesToInsert);
+                }
+
+                $importedCount += count($studentsToInsert);
+
+                // Reset batch memori
+                $newUsersBatch = [];
+                $newStudentsMetaBatch = [];
+            };
+
+            foreach ($rows as $row) {
+                $nis  = isset($colNis) && isset($row[$colNis]) ? trim((string)$row[$colNis]) : null;
+                $name = isset($colName) && isset($row[$colName]) ? trim((string)$row[$colName]) : null;
+
+                // Lewati baris kosong
+                if (empty($nis) || empty($name)) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $nisn          = isset($colNisn) && isset($row[$colNisn]) ? trim((string)$row[$colNisn]) : null;
+                $genderRaw     = isset($colGender) && isset($row[$colGender]) ? strtoupper(trim((string)$row[$colGender])) : null;
+                $gender        = in_array($genderRaw, ['L', 'LAKI-LAKI', 'PRIA', 'M']) ? 'L' : (in_array($genderRaw, ['P', 'PEREMPUAN', 'WANITA', 'F']) ? 'P' : null);
+                $phone         = isset($colPhone) && isset($row[$colPhone]) ? trim((string)$row[$colPhone]) : null;
+                $address       = isset($colAddress) && isset($row[$colAddress]) ? trim((string)$row[$colAddress]) : null;
+                $emailInput    = isset($colEmail) && isset($row[$colEmail]) ? strtolower(trim((string)$row[$colEmail])) : null;
+                $passwordInput = isset($colPassword) && isset($row[$colPassword]) ? trim((string)$row[$colPassword]) : null;
+
+                $className     = isset($colClass) && isset($row[$colClass]) ? trim((string)$row[$colClass]) : null;
+                $gradeLevel    = isset($colGrade) && isset($row[$colGrade]) ? trim((string)$row[$colGrade]) : null;
+                $major         = isset($colMajor) && isset($row[$colMajor]) ? trim((string)$row[$colMajor]) : null;
+                $yearName      = isset($colYear) && isset($row[$colYear]) ? trim((string)$row[$colYear]) : null;
+
+                // Resolusi Kelas (Memory lookup O(1))
+                $classId = null;
+                if ($className) {
+                    $compositeKey = strtolower($className) . '|' . strtolower((string)$gradeLevel) . '|' . strtolower((string)$major);
+                    $nameKey = strtolower($className);
+
+                    if (isset($classMap[$compositeKey])) {
+                        $classId = $classMap[$compositeKey];
+                    } elseif (isset($classMap[$nameKey])) {
+                        $classId = $classMap[$nameKey];
+                    } else {
+                        $newClass = StudentClass::create([
+                            'name'        => $className,
+                            'grade_level' => $gradeLevel,
+                            'major'       => $major,
+                        ]);
+                        $classId = $newClass->id;
+                        $classMap[$compositeKey] = $classId;
+                        $classMap[$nameKey] = $classId;
+                    }
+                }
+
+                // Resolusi Tahun Ajaran (Memory lookup O(1))
+                $yearId = null;
+                if ($yearName) {
+                    $yearKey = strtolower($yearName);
+                    if (isset($yearMap[$yearKey])) {
+                        $yearId = $yearMap[$yearKey];
+                    } else {
+                        $newYear = AcademicYear::create([
+                            'year'      => $yearName,
+                            'is_active' => false,
+                        ]);
+                        $yearId = $newYear->id;
+                        $yearMap[$yearKey] = $yearId;
+                    }
+                } elseif ($defaultActiveYear) {
+                    $yearId = $defaultActiveYear->id;
+                }
+
+                // Cek apakah siswa sudah terdaftar sebelumnya
+                $student = $existingStudents->get($nis);
+
+                if ($student) {
+                    // Update data siswa yang sudah ada tanpa re-hash password
+                    $studentModel = Student::withTrashed()->find($student->id);
+                    if ($studentModel) {
+                        if ($studentModel->trashed()) {
+                            $studentModel->restore();
+                        }
+                        $studentModel->update([
+                            'name'             => $name,
+                            'nisn'             => $nisn ?: $studentModel->nisn,
+                            'gender'           => $gender ?: $studentModel->gender,
+                            'phone'            => $phone ?: $studentModel->phone,
+                            'address'          => $address ?: $studentModel->address,
+                            'class_id'         => $classId ?: $studentModel->class_id,
+                            'academic_year_id' => $yearId ?: $studentModel->academic_year_id,
+                            'status'           => 'active',
+                        ]);
+
+                        if ($studentModel->user_id) {
+                            User::where('id', $studentModel->user_id)->update(['name' => $name]);
+                        }
+                    }
+                    $updatedCount++;
+                } else {
+                    // Siapkan Email unik
+                    $email = $emailInput ?: ($nis . '@siswa.sekolah.id');
+                    if (isset($existingUsers[$email])) {
+                        $email = $nis . '.' . time() . '.' . mt_rand(10, 99) . '@siswa.sekolah.id';
+                    }
+                    $existingUsers[$email] = true;
+
+                    // Password Hashing dengan In-Memory Cache (Cost 10, kompatibel penuh dengan Auth::attempt)
+                    $rawPassword = $passwordInput ?: $nis;
+                    if (!isset($passwordCache[$rawPassword])) {
+                        $passwordCache[$rawPassword] = password_hash($rawPassword, PASSWORD_BCRYPT, ['cost' => 10]);
+                    }
+                    $hashedPassword = $passwordCache[$rawPassword];
+
+                    $newUsersBatch[] = [
+                        'name'       => $name,
+                        'email'      => $email,
+                        'password'   => $hashedPassword,
+                        'role'       => 'siswa',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+
+                    $newStudentsMetaBatch[] = [
+                        'nis'              => $nis,
+                        'nisn'             => $nisn,
+                        'name'             => $name,
+                        'phone'            => $phone,
+                        'gender'           => $gender,
+                        'address'          => $address,
+                        'class_id'         => $classId,
+                        'academic_year_id' => $yearId,
+                        'email'            => $email,
+                    ];
+
+                    // Jika batch mencapai 500 baris, lakukan flush ke database
+                    if (count($newUsersBatch) >= 500) {
+                        $flushBatch();
+                    }
                 }
             }
 
-            if (!$password) {
-                $password = $nis;
-            }
+            // Flush sisa baris terakhir
+            $flushBatch();
+        });
 
-            $student = Student::updateOrCreate(
-                ['nis' => $nis],
-                [
-                    'name' => $name,
-                    'nisn' => $nisn,
-                    'gender' => $gender,
-                    'phone' => $phone,
-                    'address' => $address,
-                    'class_id' => $class->id,
-                    'academic_year_id' => $year->id,
-                ]
-            );
-
-            User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'name' => $name,
-                    'password' => Hash::make($password),
-                    'role' => 'siswa',
-                    'student_id' => $student->id,
-                ]
-            );
+        $msg = "Import berhasil! {$importedCount} data siswa baru ditambahkan";
+        if ($updatedCount > 0) {
+            $msg .= ", {$updatedCount} data siswa diperbarui";
         }
+        if ($skippedCount > 0) {
+            $msg .= " ({$skippedCount} baris kosong dilewati)";
+        }
+        $msg .= '.';
 
-        return back()->with('success', 'Import siswa berhasil! Semua kelas dan tahun ajaran baru otomatis dibuat.');
+        return back()->with('success', $msg);
     }
 
 

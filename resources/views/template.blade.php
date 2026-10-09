@@ -18,7 +18,6 @@
     <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/vendors/font-awesome/css/font-awesome.min.css">
     <!-- endinject -->
     <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="{{ asset('template/dist') }}/assets/vendors/font-awesome/css/font-awesome.min.css" />
     <link rel="stylesheet"
         href="{{ asset('template/dist') }}/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
     <!-- End plugin css for this page -->
@@ -89,8 +88,6 @@
     <script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
     {{-- sweetalert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- chart.js --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {{-- DataTables Responsive JS --}}
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
@@ -102,41 +99,56 @@
             $(function () {
                 var $sidebar = $('.sidebar-offcanvas');
                 var $backdrop = $('#sidebarBackdrop');
+                var $body = $('body');
+
+                function updateSidebarState() {
+                    if ($sidebar.hasClass('active')) {
+                        $backdrop.addClass('show');
+                        $body.addClass('sidebar-open');
+                    } else {
+                        $backdrop.removeClass('show');
+                        $body.removeClass('sidebar-open');
+                    }
+                }
+
+                function closeMobileSidebar() {
+                    $sidebar.removeClass('active');
+                    $backdrop.removeClass('show');
+                    $body.removeClass('sidebar-open');
+                }
 
                 $('[data-toggle="offcanvas"]').on('click', function () {
                     // Check if sidebar has active class after off-canvas.js toggles it
-                    setTimeout(function () {
-                        if ($sidebar.hasClass('active')) {
-                            $backdrop.addClass('show');
-                        } else {
-                            $backdrop.removeClass('show');
-                        }
-                    }, 10);
+                    setTimeout(updateSidebarState, 15);
                 });
 
                 $backdrop.on('click', function () {
-                    $sidebar.removeClass('active');
-                    $backdrop.removeClass('show');
+                    closeMobileSidebar();
                 });
 
-                $('#sidebarMobileCloseBtn').on('click', function () {
-                    $sidebar.removeClass('active');
-                    $backdrop.removeClass('show');
+                $(document).on('click', '#sidebarMobileCloseBtn', function (e) {
+                    e.preventDefault();
+                    closeMobileSidebar();
+                });
+
+                // Close drawer on ESC key
+                $(document).on('keydown', function (e) {
+                    if (e.key === 'Escape' && $sidebar.hasClass('active')) {
+                        closeMobileSidebar();
+                    }
                 });
 
                 // Auto close mobile drawer on link navigation
-                $('.sidebar-offcanvas .nav-link').on('click', function () {
+                $(document).on('click', '.sidebar-offcanvas .nav-link', function () {
                     if ($(window).width() < 992 && !$(this).attr('data-bs-toggle')) {
-                        $sidebar.removeClass('active');
-                        $backdrop.removeClass('show');
+                        closeMobileSidebar();
                     }
                 });
 
                 // Reset on window resize to desktop
                 $(window).on('resize', function () {
                     if ($(window).width() >= 992) {
-                        $backdrop.removeClass('show');
-                        $sidebar.removeClass('active');
+                        closeMobileSidebar();
                     }
                 });
             });

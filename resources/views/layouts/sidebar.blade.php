@@ -21,6 +21,20 @@
 
     {{-- 2. SIDEBAR MENU WRAPPER: Scrollable Navigation List --}}
     <div class="sidebar-menu-wrapper">
+        @if (auth()->check())
+            {{-- Mobile-Only User Info Card --}}
+            <div class="sidebar-user-panel d-lg-none mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="sidebar-user-avatar me-3">
+                        <span>{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                    </div>
+                    <div class="sidebar-user-info text-truncate">
+                        <div class="sidebar-user-name fw-bold text-white text-truncate">{{ Auth::user()->name }}</div>
+                        <span class="sidebar-user-role-badge">{{ strtoupper(Auth::user()->role ?? 'USER') }}</span>
+                    </div>
+                </div>
+            </div>
+        @endif
         <ul class="nav">
             {{-- ============================================================
                  1. MENU KHUSUS ADMIN

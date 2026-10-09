@@ -75,7 +75,7 @@
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" id="importStudentForm">
                 @csrf
                 <div class="modal-body">
                     <div class="p-3 bg-light rounded-3 mb-3 border">
@@ -94,7 +94,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary d-flex align-items-center">
+                    <button type="submit" class="btn btn-primary d-flex align-items-center" id="btnSubmitImport">
                         <i class="mdi mdi-upload me-1"></i> Mulai Import Data
                     </button>
                 </div>
@@ -194,6 +194,12 @@
                     $(`#deleteForm${id}`).submit();
                 }
             });
+        });
+
+        $('#importStudentForm').on('submit', function() {
+            var $btn = $('#btnSubmitImport');
+            $btn.prop('disabled', true);
+            $btn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Mengimpor data...');
         });
     });
 </script>
